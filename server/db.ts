@@ -1,11 +1,23 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { 
+  InsertUser, 
+  users, 
+  briefings, 
+  alerts, 
+  relationships, 
+  calendarEvents, 
+  llmAnalyses,
+  InsertBriefing,
+  InsertAlert,
+  InsertRelationship,
+  InsertCalendarEvent,
+  InsertLlmAnalysis
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -89,4 +101,110 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Briefing queries
+export async function getLatestBriefing() {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(briefings).orderBy(desc(briefings.date)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getBriefingById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(briefings).where(eq(briefings.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createBriefing(data: InsertBriefing) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(briefings).values(data);
+  return result;
+}
+
+// Alert queries
+export async function getAlertsByBriefingId(briefingId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(alerts).where(eq(alerts.briefingId, briefingId));
+}
+
+export async function createAlert(data: InsertAlert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.insert(alerts).values(data);
+}
+
+export async function updateAlertCompletion(id: number, completed: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.update(alerts)
+    .set({ 
+      completed, 
+      completedAt: completed ? new Date() : null 
+    })
+    .where(eq(alerts.id, id));
+}
+
+// Relationship queries
+export async function getAllRelationships() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(relationships).orderBy(desc(relationships.healthScore));
+}
+
+export async function createOrUpdateRelationship(data: InsertRelationship) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.insert(relationships).values(data).onDuplicateKeyUpdate({
+    set: {
+      organization: data.organization,
+      email: data.email,
+      healthScore: data.healthScore,
+      trend: data.trend,
+      lastInteraction: data.lastInteraction,
+      lastInteractionType: data.lastInteractionType,
+      notes: data.notes,
+      updatedAt: new Date(),
+    }
+  });
+}
+
+// Calendar event queries
+export async function getCalendarEventsByBriefingId(briefingId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(calendarEvents).where(eq(calendarEvents.briefingId, briefingId));
+}
+
+export async function createCalendarEvent(data: InsertCalendarEvent) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.insert(calendarEvents).values(data);
+}
+
+// LLM analysis queries
+export async function getLlmAnalysesByBriefingId(briefingId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(llmAnalyses).where(eq(llmAnalyses.briefingId, briefingId));
+}
+
+export async function createLlmAnalysis(data: InsertLlmAnalysis) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  return await db.insert(llmAnalyses).values(data);
+}
