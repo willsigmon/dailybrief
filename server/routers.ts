@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import { generateDailyBriefing } from "./services/briefingGenerator";
 
 export const appRouter = router({
   system: systemRouter,
@@ -75,6 +76,19 @@ export const appRouter = router({
     // Get all relationships
     getAll: protectedProcedure.query(async () => {
       return await db.getAllRelationships();
+    }),
+  }),
+
+  generate: router({
+    // Generate a new daily briefing
+    dailyBriefing: protectedProcedure.mutation(async () => {
+      try {
+        const briefingId = await generateDailyBriefing();
+        return { success: true, briefingId };
+      } catch (error) {
+        console.error('[API] Briefing generation failed:', error);
+        throw new Error('Failed to generate briefing');
+      }
     }),
   }),
 });
