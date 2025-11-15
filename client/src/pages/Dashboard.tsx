@@ -12,8 +12,12 @@ import { getLoginUrl } from "@/const";
 
 export default function Dashboard() {
   const { user, loading, isAuthenticated } = useAuth();
-  const { data: briefingData, isLoading: briefingLoading } = trpc.briefing.getLatest.useQuery();
-  const { data: relationships } = trpc.relationships.getAll.useQuery();
+  const { data: briefingData, isLoading: briefingLoading } = trpc.briefing.getLatest.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: relationships } = trpc.relationships.getAll.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
   const toggleAlertMutation = trpc.briefing.toggleAlert.useMutation();
   const utils = trpc.useUtils();
 

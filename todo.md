@@ -40,3 +40,8 @@
 - [ ] Scheduled daily briefing generation
 - [x] Manual briefing generation endpoint
 - [ ] Data refresh and update mechanism
+
+
+## Bugs
+
+- [x] Fix login authentication issue
