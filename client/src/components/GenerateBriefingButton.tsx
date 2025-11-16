@@ -51,26 +51,29 @@ export function GenerateBriefingButton() {
       <Button
         onClick={handleGenerate}
         disabled={generateMutation.isPending}
-        className="gap-2"
+        className="gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+        size="lg"
       >
         {generateMutation.isPending ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
             Generating...
           </>
         ) : (
           <>
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="h-5 w-5" />
             Generate Briefing
           </>
         )}
       </Button>
 
       <Dialog open={showProgress} onOpenChange={setShowProgress}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md glass border-none shadow-2xl">
           <DialogHeader>
-            <DialogTitle>Generating Your Intelligence Briefing</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              Generating Your Intelligence Briefing
+            </DialogTitle>
+            <DialogDescription className="text-base">
               This may take 30-60 seconds while we analyze your data and generate insights.
             </DialogDescription>
           </DialogHeader>

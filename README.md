@@ -1,6 +1,14 @@
 # HTI Daily BD Intelligence Briefing
 
-An AI-powered business development intelligence dashboard that automatically generates daily briefings with multi-LLM analysis, smart alerts, and relationship tracking.
+An AI-powered business development intelligence dashboard with a beautiful, modern interface that automatically generates daily briefings with multi-LLM analysis, smart alerts, and relationship tracking.
+
+## ✨ Design Features
+
+- **Glassmorphism UI** - Modern frosted glass effects throughout
+- **Rich Gradients** - Beautiful color gradients for visual hierarchy  
+- **Smooth Animations** - Delightful micro-interactions and transitions
+- **Responsive Design** - Perfect on desktop, tablet, and mobile
+- **Animated Backgrounds** - Organic blob animations for a living interface
 
 ## 🚀 Features
 

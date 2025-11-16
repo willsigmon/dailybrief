@@ -61,25 +61,35 @@ export default function Dashboard() {
 
   if (!briefingData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        </div>
+        
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-          <div className="container mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">HTI Daily BD Intelligence Briefing</h1>
-                <p className="text-sm text-gray-500 mt-1">
+        <header className="glass border-b border-white/30 sticky top-0 z-10 shadow-lg backdrop-blur-xl">
+          <div className="container mx-auto px-4 sm:px-6 py-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="fade-in">
+                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  Daily Intelligence Briefing
+                </h1>
+                <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
                   {new Date().toLocaleDateString('en-US', { 
                     weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric' 
                   })}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
                 <GenerateBriefingButton />
-                <div className="text-right">
+                <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                   <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
@@ -89,81 +99,83 @@ export default function Dashboard() {
         </header>
 
         {/* Welcome Content */}
-        <div className="container mx-auto px-6 py-12">
-          <div className="max-w-4xl mx-auto">
+        <div className="container mx-auto px-4 sm:px-6 py-12 relative z-10">
+          <div className="max-w-5xl mx-auto">
             {/* Hero Section */}
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
-                <Sparkles className="w-10 h-10 text-blue-600" />
+            <div className="text-center mb-16 fade-in">
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-6 shadow-xl">
+                <Sparkles className="w-12 h-12 text-white" />
               </div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">Welcome to Your Intelligence Briefing</h2>
-              <p className="text-xl text-gray-600 mb-8">
+              <h2 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-6">
+                Welcome to Your Intelligence Briefing
+              </h2>
+              <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
                 Your AI-powered business development command center is ready to help you stay ahead of every opportunity.
               </p>
               <GenerateBriefingButton />
             </div>
 
             {/* Features Grid */}
-            <div className="grid md:grid-cols-2 gap-6 mb-12">
-              <Card>
+            <div className="grid sm:grid-cols-2 gap-6 mb-16">
+              <Card className="glass shadow-lg card-hover border-none fade-in">
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-red-100 rounded-lg">
-                      <AlertCircle className="w-6 h-6 text-red-600" />
+                    <div className="p-3 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl shadow-md">
+                      <AlertCircle className="w-6 h-6 text-white" />
                     </div>
                     <CardTitle className="text-lg">Smart Alerts</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 leading-relaxed">
                     Get notified about response urgency, relationship cooling, and commitment breaches before they become problems.
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="glass shadow-lg card-hover border-none fade-in">
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <Sparkles className="w-6 h-6 text-purple-600" />
+                    <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-md">
+                      <Sparkles className="w-6 h-6 text-white" />
                     </div>
                     <CardTitle className="text-lg">Multi-LLM Analysis</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 leading-relaxed">
                     Every strategic opportunity analyzed by Claude, Gemini, Grok, and Perplexity for consensus validation.
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="glass shadow-lg card-hover border-none fade-in">
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <Users className="w-6 h-6 text-green-600" />
+                    <div className="p-3 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-md">
+                      <Users className="w-6 h-6 text-white" />
                     </div>
                     <CardTitle className="text-lg">Relationship Intelligence</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 leading-relaxed">
                     Track engagement health, momentum trends, and interaction patterns across your entire network.
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="glass shadow-lg card-hover border-none fade-in">
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Calendar className="w-6 h-6 text-blue-600" />
+                    <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl shadow-md">
+                      <Calendar className="w-6 h-6 text-white" />
                     </div>
                     <CardTitle className="text-lg">Calendar Prep</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 leading-relaxed">
                     Automatic meeting preparation with attendee research, strategic context, and suggested talking points.
                   </p>
                 </CardContent>
@@ -171,41 +183,58 @@ export default function Dashboard() {
             </div>
 
             {/* How It Works */}
-            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <Card className="glass border-none shadow-xl mb-12 overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-full blur-3xl -z-10"></div>
               <CardHeader>
-                <CardTitle className="text-2xl">How It Works</CardTitle>
+                <CardTitle className="text-3xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  How It Works
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Data Collection</h3>
-                    <p className="text-gray-600">Pulls from your HTI Gmail, Google Calendar, and Limitless recordings every morning at 8 AM.</p>
+              <CardContent className="space-y-6">
+                <div className="flex items-start gap-4 group">
+                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-xl flex items-center justify-center font-bold shadow-lg group-hover:scale-110 transition-transform">
+                    1
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-2 text-lg">Data Collection</h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      Pulls from your HTI Gmail, Google Calendar, and Limitless recordings every morning at 8 AM.
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">AI Analysis</h3>
-                    <p className="text-gray-600">Four AI models analyze opportunities, detect patterns, and generate smart alerts based on your activity.</p>
+                <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                <div className="flex items-start gap-4 group">
+                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-xl flex items-center justify-center font-bold shadow-lg group-hover:scale-110 transition-transform">
+                    2
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-2 text-lg">AI Analysis</h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      Four AI models analyze opportunities, detect patterns, and generate smart alerts based on your activity.
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Actionable Insights</h3>
-                    <p className="text-gray-600">Your briefing is ready when you start work—prioritized, contextualized, and ready to act on.</p>
+                <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                <div className="flex items-start gap-4 group">
+                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 text-white rounded-xl flex items-center justify-center font-bold shadow-lg group-hover:scale-110 transition-transform">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-2 text-lg">Actionable Insights</h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      Your briefing is ready when you start work—prioritized, contextualized, and ready to act on.
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* CTA */}
-            <div className="mt-12 text-center">
-              <p className="text-gray-600 mb-4">Ready to see your first briefing?</p>
+            <div className="text-center fade-in">
+              <p className="text-gray-600 mb-6 text-lg">Ready to see your first briefing?</p>
               <GenerateBriefingButton />
-              <p className="text-sm text-gray-500 mt-4">
-                <Clock className="w-4 h-4 inline mr-1" />
+              <p className="text-sm text-gray-500 mt-6 flex items-center justify-center gap-2">
+                <Clock className="w-4 h-4" />
                 Automated briefings run every weekday at 8 AM EST
               </p>
             </div>
@@ -248,25 +277,35 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
+      
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+      <header className="glass sticky top-0 z-10 shadow-lg border-b border-white/30 backdrop-blur-xl">
         <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">HTI Daily BD Intelligence Briefing</h1>
-              <p className="text-sm text-gray-600">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="fade-in">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Daily Intelligence Briefing
+              </h1>
+              <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
+                <Clock className="h-4 w-4" />
                 {new Date(briefing.date).toLocaleDateString('en-US', { 
                   weekday: 'long', 
-                  year: 'numeric', 
                   month: 'long', 
-                  day: 'numeric' 
+                  day: 'numeric',
+                  year: 'numeric'
                 })}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               <GenerateBriefingButton />
-              <div className="text-right">
+              <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                 <p className="text-xs text-gray-500">{user?.email}</p>
               </div>
@@ -275,69 +314,76 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container py-8">
+      <main className="container py-8 relative z-10">
         {/* Executive Summary */}
         {briefing.executiveSummary && (
-          <Card className="mb-6 border-l-4 border-l-blue-500">
+          <Card className="mb-6 border-l-4 border-l-indigo-500 glass card-hover fade-in shadow-xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-blue-500" />
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg">
+                  <Sparkles className="h-5 w-5 text-white" />
+                </div>
                 Executive Summary
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 leading-relaxed">{briefing.executiveSummary}</p>
+              <p className="text-gray-700 leading-relaxed text-base">{briefing.executiveSummary}</p>
             </CardContent>
           </Card>
         )}
 
         {/* Urgent Actions */}
         <Collapsible open={openSections.urgent} onOpenChange={() => toggleSection('urgent')}>
-          <Card className="mb-4 border-l-4 border-l-red-500">
+          <Card className="mb-4 border-l-4 border-l-red-500 glass shadow-lg card-hover fade-in">
             <CollapsibleTrigger className="w-full">
-              <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+              <CardHeader className="cursor-pointer hover:bg-white/50 transition-all duration-200 rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <AlertCircle className="h-5 w-5 text-red-500" />
-                    <CardTitle>Urgent Actions</CardTitle>
-                    <Badge variant="destructive">{urgentAlerts.length}</Badge>
+                    <div className="p-2 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg shadow-md">
+                      <AlertCircle className="h-5 w-5 text-white" />
+                    </div>
+                    <CardTitle className="text-lg">Urgent Actions</CardTitle>
+                    <Badge variant="destructive" className="shadow-sm">{urgentAlerts.length}</Badge>
                   </div>
-                  {openSections.urgent ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  {openSections.urgent ? <ChevronUp className="h-5 w-5 text-gray-500" /> : <ChevronDown className="h-5 w-5 text-gray-500" />}
                 </div>
               </CardHeader>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 pt-2">
                 {urgentAlerts.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">No urgent actions at this time</p>
                 ) : (
                   urgentAlerts.map(alert => (
-                    <div key={alert.id} className="flex items-start gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
+                    <div key={alert.id} className="flex items-start gap-3 p-4 bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-200 shadow-sm hover:shadow-md transition-all duration-200">
                       <Checkbox
                         checked={alert.completed}
                         onCheckedChange={(checked) => handleToggleAlert(alert.id, checked as boolean)}
-                        className="mt-1"
+                        className="mt-1 border-red-300"
                       />
                       <div className="flex-1">
-                        <h4 className={`font-semibold ${alert.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                        <h4 className={`font-semibold text-base ${alert.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                           {alert.title}
                         </h4>
                         {alert.contactName && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            Contact: {alert.contactName} {alert.organization && `(${alert.organization})`}
+                          <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {alert.contactName} {alert.organization && `· ${alert.organization}`}
                           </p>
                         )}
-                        <p className="text-sm text-gray-700 mt-2">{alert.description}</p>
+                        <p className="text-sm text-gray-700 mt-2 leading-relaxed">{alert.description}</p>
                         {alert.actionRequired && (
-                          <div className="mt-3 p-3 bg-white rounded border border-red-300">
-                            <p className="text-sm font-medium text-red-900">Recommended Action:</p>
-                            <p className="text-sm text-gray-700 mt-1">{alert.actionRequired}</p>
+                          <div className="mt-3 p-3 bg-white/80 rounded-lg border border-red-200 shadow-sm">
+                            <p className="text-xs font-semibold text-red-900 uppercase tracking-wide mb-1">Recommended Action</p>
+                            <p className="text-sm text-gray-700">{alert.actionRequired}</p>
                           </div>
                         )}
                         {alert.deadline && (
-                          <div className="flex items-center gap-2 mt-2 text-sm text-red-700">
-                            <Clock className="h-4 w-4" />
-                            Deadline: {new Date(alert.deadline).toLocaleString()}
+                          <div className="flex items-center gap-2 mt-3 px-3 py-2 bg-red-100 rounded-lg">
+                            <Clock className="h-4 w-4 text-red-700" />
+                            <span className="text-sm font-medium text-red-900">
+                              Deadline: {new Date(alert.deadline).toLocaleString()}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -351,16 +397,18 @@ export default function Dashboard() {
 
         {/* Important Actions */}
         <Collapsible open={openSections.important} onOpenChange={() => toggleSection('important')}>
-          <Card className="mb-4 border-l-4 border-l-yellow-500">
+          <Card className="mb-4 border-l-4 border-l-amber-500 glass shadow-lg card-hover fade-in">
             <CollapsibleTrigger className="w-full">
-              <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+              <CardHeader className="cursor-pointer hover:bg-white/50 transition-all duration-200 rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <AlertCircle className="h-5 w-5 text-yellow-500" />
-                    <CardTitle>Important Actions</CardTitle>
-                    <Badge variant="secondary">{importantAlerts.length}</Badge>
+                    <div className="p-2 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-lg shadow-md">
+                      <AlertCircle className="h-5 w-5 text-white" />
+                    </div>
+                    <CardTitle className="text-lg">Important Actions</CardTitle>
+                    <Badge variant="secondary" className="bg-amber-100 text-amber-900 shadow-sm">{importantAlerts.length}</Badge>
                   </div>
-                  {openSections.important ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  {openSections.important ? <ChevronUp className="h-5 w-5 text-gray-500" /> : <ChevronDown className="h-5 w-5 text-gray-500" />}
                 </div>
               </CardHeader>
             </CollapsibleTrigger>
@@ -370,26 +418,27 @@ export default function Dashboard() {
                   <p className="text-gray-500 text-center py-4">No important actions at this time</p>
                 ) : (
                   importantAlerts.map(alert => (
-                    <div key={alert.id} className="flex items-start gap-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div key={alert.id} className="flex items-start gap-3 p-4 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl border border-amber-200 shadow-sm hover:shadow-md transition-all duration-200">
                       <Checkbox
                         checked={alert.completed}
                         onCheckedChange={(checked) => handleToggleAlert(alert.id, checked as boolean)}
-                        className="mt-1"
+                        className="mt-1 border-amber-300"
                       />
                       <div className="flex-1">
-                        <h4 className={`font-semibold ${alert.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                        <h4 className={`font-semibold text-base ${alert.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                           {alert.title}
                         </h4>
                         {alert.contactName && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            Contact: {alert.contactName} {alert.organization && `(${alert.organization})`}
+                          <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {alert.contactName} {alert.organization && `· ${alert.organization}`}
                           </p>
                         )}
-                        <p className="text-sm text-gray-700 mt-2">{alert.description}</p>
+                        <p className="text-sm text-gray-700 mt-2 leading-relaxed">{alert.description}</p>
                         {alert.actionRequired && (
-                          <div className="mt-3 p-3 bg-white rounded border border-yellow-300">
-                            <p className="text-sm font-medium text-yellow-900">Recommended Action:</p>
-                            <p className="text-sm text-gray-700 mt-1">{alert.actionRequired}</p>
+                          <div className="mt-3 p-3 bg-white/80 rounded-lg border border-amber-200 shadow-sm">
+                            <p className="text-xs font-semibold text-amber-900 uppercase tracking-wide mb-1">Recommended Action</p>
+                            <p className="text-sm text-gray-700">{alert.actionRequired}</p>
                           </div>
                         )}
                       </div>
@@ -403,16 +452,18 @@ export default function Dashboard() {
 
         {/* Strategic Opportunities */}
         <Collapsible open={openSections.strategic} onOpenChange={() => toggleSection('strategic')}>
-          <Card className="mb-4 border-l-4 border-l-green-500">
+          <Card className="mb-4 border-l-4 border-l-emerald-500 glass shadow-lg card-hover fade-in">
             <CollapsibleTrigger className="w-full">
-              <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+              <CardHeader className="cursor-pointer hover:bg-white/50 transition-all duration-200 rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Sparkles className="h-5 w-5 text-green-500" />
-                    <CardTitle>Strategic Opportunities</CardTitle>
-                    <Badge variant="secondary">{strategicAlerts.length}</Badge>
+                    <div className="p-2 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg shadow-md">
+                      <Sparkles className="h-5 w-5 text-white" />
+                    </div>
+                    <CardTitle className="text-lg">Strategic Opportunities</CardTitle>
+                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-900 shadow-sm">{strategicAlerts.length}</Badge>
                   </div>
-                  {openSections.strategic ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  {openSections.strategic ? <ChevronUp className="h-5 w-5 text-gray-500" /> : <ChevronDown className="h-5 w-5 text-gray-500" />}
                 </div>
               </CardHeader>
             </CollapsibleTrigger>
@@ -422,26 +473,27 @@ export default function Dashboard() {
                   <p className="text-gray-500 text-center py-4">No strategic opportunities at this time</p>
                 ) : (
                   strategicAlerts.map(alert => (
-                    <div key={alert.id} className="flex items-start gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div key={alert.id} className="flex items-start gap-3 p-4 bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl border border-emerald-200 shadow-sm hover:shadow-md transition-all duration-200">
                       <Checkbox
                         checked={alert.completed}
                         onCheckedChange={(checked) => handleToggleAlert(alert.id, checked as boolean)}
-                        className="mt-1"
+                        className="mt-1 border-emerald-300"
                       />
                       <div className="flex-1">
-                        <h4 className={`font-semibold ${alert.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                        <h4 className={`font-semibold text-base ${alert.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                           {alert.title}
                         </h4>
                         {alert.contactName && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            Contact: {alert.contactName} {alert.organization && `(${alert.organization})`}
+                          <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {alert.contactName} {alert.organization && `· ${alert.organization}`}
                           </p>
                         )}
-                        <p className="text-sm text-gray-700 mt-2">{alert.description}</p>
+                        <p className="text-sm text-gray-700 mt-2 leading-relaxed">{alert.description}</p>
                         {alert.actionRequired && (
-                          <div className="mt-3 p-3 bg-white rounded border border-green-300">
-                            <p className="text-sm font-medium text-green-900">Recommended Action:</p>
-                            <p className="text-sm text-gray-700 mt-1">{alert.actionRequired}</p>
+                          <div className="mt-3 p-3 bg-white/80 rounded-lg border border-emerald-200 shadow-sm">
+                            <p className="text-xs font-semibold text-emerald-900 uppercase tracking-wide mb-1">Recommended Action</p>
+                            <p className="text-sm text-gray-700">{alert.actionRequired}</p>
                           </div>
                         )}
                       </div>
