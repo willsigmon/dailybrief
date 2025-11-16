@@ -7,6 +7,8 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import cron from "node-cron";
+import { runDailyBriefingTask } from "../scheduledTasks";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -60,6 +62,20 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
   });
+
+  // Schedule daily briefing generation at 8 AM on weekdays (Monday-Friday)
+  // Cron format: seconds minutes hours day-of-month month day-of-week
+  // 0 0 8 * * 1-5 = At 8:00 AM, Monday through Friday
+  cron.schedule('0 0 8 * * 1-5', async () => {
+    console.log('[Cron] Triggering daily briefing generation...');
+    await runDailyBriefingTask();
+  }, {
+    timezone: 'America/New_York' // Adjust to your timezone
+  });
+
+  console.log('[Cron] Scheduled daily briefing generation for 8 AM weekdays (America/New_York timezone)');
+
+  return server;
 }
 
 startServer().catch(console.error);

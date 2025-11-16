@@ -37,7 +37,7 @@
 
 ## Automation
 
-- [ ] Scheduled daily briefing generation
+- [x] Scheduled daily briefing generation (8 AM weekdays)
 - [x] Manual briefing generation endpoint
 - [ ] Data refresh and update mechanism
 
