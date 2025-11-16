@@ -51,3 +51,5 @@
 - [x] Improved empty state with helpful information
 - [ ] Demo mode with sample data
 - [x] Better onboarding experience
+
+- [x] Fix briefing generation error

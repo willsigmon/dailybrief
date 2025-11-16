@@ -54,7 +54,7 @@ async function executeMCPCommand(command: string): Promise<any> {
     return null;
   } catch (error) {
     console.error('[MCP] Command execution failed:', error);
-    throw error;
+    return null; // Return null instead of throwing to allow graceful degradation
   }
 }
 
@@ -70,7 +70,8 @@ export async function fetchGmailMessages(daysBack: number = 2): Promise<GmailMes
   
   const result = await executeMCPCommand(command);
   
-  if (!result?.result?.threads) {
+  if (!result || !result.result?.threads) {
+    console.warn('[MCP] Gmail integration returned no data');
     return [];
   }
 
@@ -110,7 +111,8 @@ export async function fetchCalendarEvents(daysAhead: number = 7): Promise<Calend
   
   const result = await executeMCPCommand(command);
   
-  if (!result?.items) {
+  if (!result || !result.items) {
+    console.warn('[MCP] Calendar integration returned no data');
     return [];
   }
 
@@ -144,7 +146,8 @@ export async function fetchLimitlessRecordings(daysBack: number = 2): Promise<Li
   try {
     const result = await executeMCPCommand(command);
     
-    if (!result?.lifelogs) {
+    if (!result || !result.lifelogs) {
+      console.warn('[MCP] Limitless integration returned no data');
       return [];
     }
 
