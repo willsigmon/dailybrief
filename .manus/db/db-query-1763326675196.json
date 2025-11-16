@@ -1,0 +1,40 @@
+{
+  "query": "SELECT b.id, b.date, b.executiveSummary, COUNT(a.id) as alert_count FROM briefings b LEFT JOIN alerts a ON b.id = a.briefingId GROUP BY b.id ORDER BY b.date DESC LIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3a5VYbVErDuZa4y.8a23307d57cf --database 7KTL9bhP82CxKecSi9Nij2 --execute SELECT b.id, b.date, b.executiveSummary, COUNT(a.id) as alert_count FROM briefings b LEFT JOIN alerts a ON b.id = a.briefingId GROUP BY b.id ORDER BY b.date DESC LIMIT 5",
+  "rows": [
+    {
+      "id": "30001",
+      "date": "2025-11-16 11:00:00",
+      "executiveSummary": "The BD briefing indicates a quiet start with **no urgent actions, critical deadlines, or strategic opportunities** requiring immediate attention today. Focus efforts on proactive pipeline building and lead nurturing, utilizing this bandwidth to deepen relationships and research potential future markets.",
+      "alert_count": "0"
+    },
+    {
+      "id": "120001",
+      "date": "2025-11-16 11:00:00",
+      "executiveSummary": "The business development landscape is currently stable, with **no urgent actions, critical priorities, or significant new opportunities** identified for immediate focus. Today's briefing will concentrate on foundational activities and pipeline maintenance to ensure we are prepared for future growth.",
+      "alert_count": "0"
+    },
+    {
+      "id": "60001",
+      "date": "2025-11-16 11:00:00",
+      "executiveSummary": "The business development landscape is currently stable, with zero urgent or important actions required today. Focus efforts on proactive pipeline development and nurturing existing leads. Maintain vigilance for emerging strategic opportunities.",
+      "alert_count": "0"
+    },
+    {
+      "id": "2",
+      "date": "2025-11-15 11:00:00",
+      "executiveSummary": "The business development landscape is currently stable with **zero urgent actions or high-priority opportunities** requiring immediate attention. Today's focus is on proactive pipeline building and foundational work, specifically targeting early-stage lead qualification and refining outreach strategies. Leverage this quiet period to strengthen long-term growth initiatives.",
+      "alert_count": "0"
+    },
+    {
+      "id": "1",
+      "date": "2025-11-15 11:00:00",
+      "executiveSummary": "Your HTI Daily BD Intelligence Briefing is ready. Review urgent actions, important items, and strategic opportunities below.",
+      "alert_count": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tdate\texecutiveSummary\talert_count\n30001\t2025-11-16 11:00:00\tThe BD briefing indicates a quiet start with **no urgent actions, critical deadlines, or strategic opportunities** requiring immediate attention today. Focus efforts on proactive pipeline building and lead nurturing, utilizing this bandwidth to deepen relationships and research potential future markets.\t0\n120001\t2025-11-16 11:00:00\tThe business development landscape is currently stable, with **no urgent actions, critical priorities, or significant new opportunities** identified for immediate focus. Today's briefing will concentrate on foundational activities and pipeline maintenance to ensure we are prepared for future growth.\t0\n60001\t2025-11-16 11:00:00\tThe business development landscape is currently stable, with zero urgent or important actions required today. Focus efforts on proactive pipeline development and nurturing existing leads. Maintain vigilance for emerging strategic opportunities.\t0\n2\t2025-11-15 11:00:00\tThe business development landscape is currently stable with **zero urgent actions or high-priority opportunities** requiring immediate attention. Today's focus is on proactive pipeline building and foundational work, specifically targeting early-stage lead qualification and refining outreach strategies. Leverage this quiet period to strengthen long-term growth initiatives.\t0\n1\t2025-11-15 11:00:00\tYour HTI Daily BD Intelligence Briefing is ready. Review urgent actions, important items, and strategic opportunities below.\t0\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

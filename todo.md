@@ -64,3 +64,7 @@
 ## Current Issues
 
 - [x] Fix briefing generation not completing
+
+- [x] Rebuild briefing generation as Manus-scheduled task with real MCP data
+
+- [x] Fix alert display - alerts inserted but not showing on dashboard

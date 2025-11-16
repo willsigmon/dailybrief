@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE alerts SET briefingId = 5 WHERE briefingId = 90001",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3a5VYbVErDuZa4y.8a23307d57cf --database 7KTL9bhP82CxKecSi9Nij2 --execute UPDATE alerts SET briefingId = 5 WHERE briefingId = 90001",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 52
+}

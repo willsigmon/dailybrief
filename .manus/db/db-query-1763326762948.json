@@ -1,0 +1,50 @@
+{
+  "query": "SELECT 'Briefings' as source, id, date FROM briefings UNION ALL SELECT 'Alerts' as source, briefingId as id, NULL FROM alerts",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3a5VYbVErDuZa4y.8a23307d57cf --database 7KTL9bhP82CxKecSi9Nij2 --execute SELECT 'Briefings' as source, id, date FROM briefings UNION ALL SELECT 'Alerts' as source, briefingId as id, NULL FROM alerts",
+  "rows": [
+    {
+      "source": "Briefings",
+      "id": "1",
+      "date": "2025-11-15 11:00:00"
+    },
+    {
+      "source": "Briefings",
+      "id": "2",
+      "date": "2025-11-15 11:00:00"
+    },
+    {
+      "source": "Briefings",
+      "id": "30001",
+      "date": "2025-11-16 11:00:00"
+    },
+    {
+      "source": "Briefings",
+      "id": "60001",
+      "date": "2025-11-16 11:00:00"
+    },
+    {
+      "source": "Briefings",
+      "id": "120001",
+      "date": "2025-11-16 11:00:00"
+    },
+    {
+      "source": "Alerts",
+      "id": "90001",
+      "date": "NULL"
+    },
+    {
+      "source": "Alerts",
+      "id": "90001",
+      "date": "NULL"
+    },
+    {
+      "source": "Alerts",
+      "id": "90001",
+      "date": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "source\tid\tdate\nBriefings\t1\t2025-11-15 11:00:00\nBriefings\t2\t2025-11-15 11:00:00\nBriefings\t30001\t2025-11-16 11:00:00\nBriefings\t60001\t2025-11-16 11:00:00\nBriefings\t120001\t2025-11-16 11:00:00\nAlerts\t90001\tNULL\nAlerts\t90001\tNULL\nAlerts\t90001\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

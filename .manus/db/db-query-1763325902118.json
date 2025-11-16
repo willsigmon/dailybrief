@@ -1,0 +1,30 @@
+{
+  "query": "SHOW CREATE TABLE alerts",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3a5VYbVErDuZa4y.8a23307d57cf --database 7KTL9bhP82CxKecSi9Nij2 --execute SHOW CREATE TABLE alerts",
+  "rows": [
+    {
+      "Table": "alerts",
+      "Create Table": "CREATE TABLE `alerts` ("
+    }
+  ],
+  "messages": [
+    "  `id` int(11) NOT NULL AUTO_INCREMENT,",
+    "  `briefingId` int(11) NOT NULL,",
+    "  `type` enum('urgent','important','strategic') COLLATE utf8mb4_unicode_ci NOT NULL,",
+    "  `category` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,",
+    "  `title` text COLLATE utf8mb4_unicode_ci NOT NULL,",
+    "  `description` text COLLATE utf8mb4_unicode_ci NOT NULL,",
+    "  `contactName` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,",
+    "  `organization` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,",
+    "  `actionRequired` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,",
+    "  `deadline` timestamp NULL DEFAULT NULL,",
+    "  `completed` tinyint(1) NOT NULL DEFAULT '0',",
+    "  `completedAt` timestamp NULL DEFAULT NULL,",
+    "  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,",
+    "  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */",
+    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+  ],
+  "stdout": "Table\tCreate Table\nalerts\tCREATE TABLE `alerts` (\n  `id` int(11) NOT NULL AUTO_INCREMENT,\n  `briefingId` int(11) NOT NULL,\n  `type` enum('urgent','important','strategic') COLLATE utf8mb4_unicode_ci NOT NULL,\n  `category` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,\n  `title` text COLLATE utf8mb4_unicode_ci NOT NULL,\n  `description` text COLLATE utf8mb4_unicode_ci NOT NULL,\n  `contactName` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `organization` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `actionRequired` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,\n  `deadline` timestamp NULL DEFAULT NULL,\n  `completed` tinyint(1) NOT NULL DEFAULT '0',\n  `completedAt` timestamp NULL DEFAULT NULL,\n  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`) /*T![clustered_index] CLUSTERED */\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci\n",
+  "stderr": "",
+  "execution_time_ms": 47
+}
