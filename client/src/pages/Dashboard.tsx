@@ -61,13 +61,156 @@ export default function Dashboard() {
 
   if (!briefingData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>No Briefing Available</CardTitle>
-            <CardDescription>Your daily briefing hasn't been generated yet. Check back soon!</CardDescription>
-          </CardHeader>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">HTI Daily BD Intelligence Briefing</h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  {new Date().toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <GenerateBriefingButton />
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Welcome Content */}
+        <div className="container mx-auto px-6 py-12">
+          <div className="max-w-4xl mx-auto">
+            {/* Hero Section */}
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
+                <Sparkles className="w-10 h-10 text-blue-600" />
+              </div>
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Welcome to Your Intelligence Briefing</h2>
+              <p className="text-xl text-gray-600 mb-8">
+                Your AI-powered business development command center is ready to help you stay ahead of every opportunity.
+              </p>
+              <GenerateBriefingButton />
+            </div>
+
+            {/* Features Grid */}
+            <div className="grid md:grid-cols-2 gap-6 mb-12">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-100 rounded-lg">
+                      <AlertCircle className="w-6 h-6 text-red-600" />
+                    </div>
+                    <CardTitle className="text-lg">Smart Alerts</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Get notified about response urgency, relationship cooling, and commitment breaches before they become problems.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Sparkles className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <CardTitle className="text-lg">Multi-LLM Analysis</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Every strategic opportunity analyzed by Claude, Gemini, Grok, and Perplexity for consensus validation.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Users className="w-6 h-6 text-green-600" />
+                    </div>
+                    <CardTitle className="text-lg">Relationship Intelligence</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Track engagement health, momentum trends, and interaction patterns across your entire network.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Calendar className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <CardTitle className="text-lg">Calendar Prep</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">
+                    Automatic meeting preparation with attendee research, strategic context, and suggested talking points.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* How It Works */}
+            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="text-2xl">How It Works</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Data Collection</h3>
+                    <p className="text-gray-600">Pulls from your HTI Gmail, Google Calendar, and Limitless recordings every morning at 8 AM.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">AI Analysis</h3>
+                    <p className="text-gray-600">Four AI models analyze opportunities, detect patterns, and generate smart alerts based on your activity.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-1">Actionable Insights</h3>
+                    <p className="text-gray-600">Your briefing is ready when you start work—prioritized, contextualized, and ready to act on.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CTA */}
+            <div className="mt-12 text-center">
+              <p className="text-gray-600 mb-4">Ready to see your first briefing?</p>
+              <GenerateBriefingButton />
+              <p className="text-sm text-gray-500 mt-4">
+                <Clock className="w-4 h-4 inline mr-1" />
+                Automated briefings run every weekday at 8 AM EST
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
