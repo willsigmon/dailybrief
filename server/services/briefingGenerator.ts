@@ -17,6 +17,7 @@ import {
 } from './alertsGenerator';
 import { analyzeOpportunity } from './llmAnalysis';
 import { invokeLLM } from '../_core/llm';
+import { progressTracker } from './progressTracker';
 
 /**
  * Generate executive summary using LLM
@@ -52,10 +53,23 @@ Write a concise, actionable summary that highlights the most critical items and 
 /**
  * Main briefing generation function
  */
-export async function generateDailyBriefing(): Promise<number> {
+export async function generateDailyBriefing(sessionId?: string): Promise<number> {
+  const trackingId = sessionId || `briefing-${Date.now()}`;
+  
+  if (sessionId) {
+    progressTracker.startSession(trackingId);
+  }
+  
   console.log('[Briefing] Starting daily briefing generation...');
 
   // Step 1: Fetch data from all sources
+  if (sessionId) {
+    progressTracker.updateProgress(trackingId, {
+      step: 'fetching',
+      progress: 10,
+      message: 'Fetching data from Gmail, Calendar, and Limitless...',
+    });
+  }
   console.log('[Briefing] Fetching data from MCP integrations...');
   const [gmailMessages, calendarEvents, limitlessRecordings] = await Promise.all([
     fetchGmailMessages(2),
@@ -64,6 +78,14 @@ export async function generateDailyBriefing(): Promise<number> {
   ]);
 
   console.log(`[Briefing] Data fetched: ${gmailMessages.length} emails, ${calendarEvents.length} events, ${limitlessRecordings.length} recordings`);
+  
+  if (sessionId) {
+    progressTracker.updateProgress(trackingId, {
+      step: 'data-fetched',
+      progress: 30,
+      message: `Fetched ${gmailMessages.length} emails, ${calendarEvents.length} events, ${limitlessRecordings.length} recordings`,
+    });
+  }
 
   // Step 2: Create briefing record
   const briefingDate = new Date();
@@ -83,6 +105,13 @@ export async function generateDailyBriefing(): Promise<number> {
   console.log(`[Briefing] Created briefing record: ${briefingId}`);
 
   // Step 3: Generate alerts
+  if (sessionId) {
+    progressTracker.updateProgress(trackingId, {
+      step: 'generating-alerts',
+      progress: 40,
+      message: 'Generating smart alerts and detecting patterns...',
+    });
+  }
   console.log('[Briefing] Generating smart alerts...');
   const allAlerts = [
     ...generateResponseUrgencyAlerts(gmailMessages as any[], briefingId),
@@ -97,8 +126,23 @@ export async function generateDailyBriefing(): Promise<number> {
   }
 
   console.log(`[Briefing] Generated ${allAlerts.length} alerts`);
+  
+  if (sessionId) {
+    progressTracker.updateProgress(trackingId, {
+      step: 'alerts-generated',
+      progress: 50,
+      message: `Generated ${allAlerts.length} smart alerts`,
+    });
+  }
 
   // Step 4: Process relationships
+  if (sessionId) {
+    progressTracker.updateProgress(trackingId, {
+      step: 'processing-relationships',
+      progress: 60,
+      message: 'Analyzing relationship health and engagement trends...',
+    });
+  }
   console.log('[Briefing] Processing relationships...');
   const contactMap = new Map<string, any>();
 
@@ -205,5 +249,10 @@ Action Required: ${alert.actionRequired}
   }
 
   console.log('[Briefing] Daily briefing generation complete!');
+  
+  if (sessionId) {
+    progressTracker.completeSession(trackingId, true, 'Briefing generated successfully!');
+  }
+  
   return briefingId;
 }

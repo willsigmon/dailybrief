@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import cron from "node-cron";
 import { runDailyBriefingTask } from "../scheduledTasks";
+import { setupProgressEndpoint } from "../progressEndpoint";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,6 +38,8 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  // Progress SSE endpoint
+  setupProgressEndpoint(app);
   // tRPC API
   app.use(
     "/api/trpc",

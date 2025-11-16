@@ -53,3 +53,10 @@
 - [x] Better onboarding experience
 
 - [x] Fix NaN database error in briefing generation
+
+## Progress Bar Feature
+
+- [x] Backend progress tracking with Server-Sent Events (SSE)
+- [x] Frontend progress bar UI component
+- [x] Real-time status updates during generation
+- [x] Step-by-step progress indicators (Fetching data, Generating alerts, Analyzing opportunities, etc.)

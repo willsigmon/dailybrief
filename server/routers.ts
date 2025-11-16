@@ -81,15 +81,18 @@ export const appRouter = router({
 
   generate: router({
     // Generate a new daily briefing
-    dailyBriefing: protectedProcedure.mutation(async () => {
-      try {
-        const briefingId = await generateDailyBriefing();
-        return { success: true, briefingId };
-      } catch (error) {
-        console.error('[API] Briefing generation failed:', error);
-        throw new Error('Failed to generate briefing');
-      }
-    }),
+    dailyBriefing: protectedProcedure
+      .input(z.object({ sessionId: z.string().optional() }).optional())
+      .mutation(async ({ input }) => {
+        try {
+          const sessionId = input?.sessionId;
+          const briefingId = await generateDailyBriefing(sessionId);
+          return { success: true, briefingId, sessionId };
+        } catch (error) {
+          console.error('[API] Briefing generation failed:', error);
+          throw new Error('Failed to generate briefing');
+        }
+      }),
   }),
 });
 
