@@ -1,0 +1,35 @@
+{
+  "query": "SELECT b.id as briefing_id, b.date, COUNT(a.id) as alert_count FROM briefings b LEFT JOIN alerts a ON b.id = a.briefingId GROUP BY b.id ORDER BY b.date DESC LIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3a5VYbVErDuZa4y.8a23307d57cf --database 7KTL9bhP82CxKecSi9Nij2 --execute SELECT b.id as briefing_id, b.date, COUNT(a.id) as alert_count FROM briefings b LEFT JOIN alerts a ON b.id = a.briefingId GROUP BY b.id ORDER BY b.date DESC LIMIT 5",
+  "rows": [
+    {
+      "briefing_id": "30001",
+      "date": "2025-11-16 11:00:00",
+      "alert_count": "0"
+    },
+    {
+      "briefing_id": "60001",
+      "date": "2025-11-16 11:00:00",
+      "alert_count": "0"
+    },
+    {
+      "briefing_id": "120001",
+      "date": "2025-11-16 11:00:00",
+      "alert_count": "0"
+    },
+    {
+      "briefing_id": "2",
+      "date": "2025-11-15 11:00:00",
+      "alert_count": "0"
+    },
+    {
+      "briefing_id": "1",
+      "date": "2025-11-15 11:00:00",
+      "alert_count": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "briefing_id\tdate\talert_count\n30001\t2025-11-16 11:00:00\t0\n60001\t2025-11-16 11:00:00\t0\n120001\t2025-11-16 11:00:00\t0\n2\t2025-11-15 11:00:00\t0\n1\t2025-11-15 11:00:00\t0\n",
+  "stderr": "",
+  "execution_time_ms": 51
+}

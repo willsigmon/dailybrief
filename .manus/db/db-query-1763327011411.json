@@ -1,0 +1,55 @@
+{
+  "query": "SELECT * FROM alerts",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3a5VYbVErDuZa4y.8a23307d57cf --database 7KTL9bhP82CxKecSi9Nij2 --execute SELECT * FROM alerts",
+  "rows": [
+    {
+      "id": "30001",
+      "briefingId": "5",
+      "type": "important",
+      "category": "follow-up",
+      "title": "Follow up with Stephanie Phillips - Kiwanis attendee list",
+      "description": "You requested attendee names and emails after your Kiwanis presentation on Nov 12. Stephanie responded with the President's contact (Hugh Grist at Hugh@gristrealty.com). Follow up to get the full attendee list for relationship building and future engagement opportunities.",
+      "contactName": "Stephanie Phillips",
+      "organization": "Raleigh Midtown Kiwanis Club",
+      "actionRequired": "Send follow-up email requesting complete attendee list",
+      "deadline": "NULL",
+      "completed": "0",
+      "completedAt": "NULL",
+      "createdAt": "2025-11-16 20:58:16"
+    },
+    {
+      "id": "30002",
+      "briefingId": "5",
+      "type": "strategic",
+      "category": "partnership",
+      "title": "NC Digital Opportunity Gathering - State Partnership Opportunity",
+      "description": "Mark forwarded an invitation from Adrienne Clark (adrienne.clark@nc.gov) for a Digital Opportunity Gathering pre-meeting in December 2025. This NC state government initiative aligns perfectly with HTI's digital equity mission and could lead to significant state-level partnerships and funding opportunities.",
+      "contactName": "Adrienne Clark",
+      "organization": "State of North Carolina",
+      "actionRequired": "Review agenda PDF and confirm attendance with Mark",
+      "deadline": "NULL",
+      "completed": "0",
+      "completedAt": "NULL",
+      "createdAt": "2025-11-16 20:58:16"
+    },
+    {
+      "id": "30003",
+      "briefingId": "5",
+      "type": "important",
+      "category": "administrative",
+      "title": "Insurance review in progress with Carter Helms",
+      "description": "You sent Carter your insurance documentation on Nov 14 using AI-generated PDF. Carter acknowledged receipt and complimented the AI approach. He will shop for better rates across multiple carriers. Expect follow-up quotes within 1-2 weeks.",
+      "contactName": "Carter Helms",
+      "organization": "High Street Insurance",
+      "actionRequired": "Wait for quotes, review when received",
+      "deadline": "NULL",
+      "completed": "0",
+      "completedAt": "NULL",
+      "createdAt": "2025-11-16 20:58:16"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tbriefingId\ttype\tcategory\ttitle\tdescription\tcontactName\torganization\tactionRequired\tdeadline\tcompleted\tcompletedAt\tcreatedAt\n30001\t5\timportant\tfollow-up\tFollow up with Stephanie Phillips - Kiwanis attendee list\tYou requested attendee names and emails after your Kiwanis presentation on Nov 12. Stephanie responded with the President's contact (Hugh Grist at Hugh@gristrealty.com). Follow up to get the full attendee list for relationship building and future engagement opportunities.\tStephanie Phillips\tRaleigh Midtown Kiwanis Club\tSend follow-up email requesting complete attendee list\tNULL\t0\tNULL\t2025-11-16 20:58:16\n30002\t5\tstrategic\tpartnership\tNC Digital Opportunity Gathering - State Partnership Opportunity\tMark forwarded an invitation from Adrienne Clark (adrienne.clark@nc.gov) for a Digital Opportunity Gathering pre-meeting in December 2025. This NC state government initiative aligns perfectly with HTI's digital equity mission and could lead to significant state-level partnerships and funding opportunities.\tAdrienne Clark\tState of North Carolina\tReview agenda PDF and confirm attendance with Mark\tNULL\t0\tNULL\t2025-11-16 20:58:16\n30003\t5\timportant\tadministrative\tInsurance review in progress with Carter Helms\tYou sent Carter your insurance documentation on Nov 14 using AI-generated PDF. Carter acknowledged receipt and complimented the AI approach. He will shop for better rates across multiple carriers. Expect follow-up quotes within 1-2 weeks.\tCarter Helms\tHigh Street Insurance\tWait for quotes, review when received\tNULL\t0\tNULL\t2025-11-16 20:58:16\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

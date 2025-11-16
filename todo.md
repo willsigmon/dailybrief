@@ -68,3 +68,13 @@
 - [x] Rebuild briefing generation as Manus-scheduled task with real MCP data
 
 - [x] Fix alert display - alerts inserted but not showing on dashboard
+
+## Remaining Features to Implement
+
+- [x] Fix alert display - debug frontend rendering issue (alerts are in DB correctly)
+- [ ] Calendar event integration with strategic value assessment
+- [ ] Multi-LLM consensus analysis (Claude, Gemini, Grok, Perplexity)
+- [ ] Smart alert generation for all categories (response urgency, relationship cooling, commitment tracking)
+- [ ] Commitment tracking from Limitless transcripts
+- [ ] Hidden connection finder
+- [ ] Timing-based opportunity detection
