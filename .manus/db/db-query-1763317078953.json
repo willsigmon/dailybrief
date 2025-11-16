@@ -1,0 +1,17 @@
+{
+  "query": "SELECT * FROM briefings ORDER BY generatedAt DESC LIMIT 1",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3a5VYbVErDuZa4y.8a23307d57cf --database 7KTL9bhP82CxKecSi9Nij2 --execute SELECT * FROM briefings ORDER BY generatedAt DESC LIMIT 1",
+  "rows": [
+    {
+      "id": "2",
+      "date": "2025-11-15 11:00:00",
+      "executiveSummary": "The business development landscape is currently stable with **zero urgent actions or high-priority opportunities** requiring immediate attention. Today's focus is on proactive pipeline building and foundational work, specifically targeting early-stage lead qualification and refining outreach strategies. Leverage this quiet period to strengthen long-term growth initiatives.",
+      "generatedAt": "2025-11-16 00:35:12",
+      "updatedAt": "2025-11-16 00:35:16"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tdate\texecutiveSummary\tgeneratedAt\tupdatedAt\n2\t2025-11-15 11:00:00\tThe business development landscape is currently stable with **zero urgent actions or high-priority opportunities** requiring immediate attention. Today's focus is on proactive pipeline building and foundational work, specifically targeting early-stage lead qualification and refining outreach strategies. Leverage this quiet period to strengthen long-term growth initiatives.\t2025-11-16 00:35:12\t2025-11-16 00:35:16\n",
+  "stderr": "",
+  "execution_time_ms": 51
+}

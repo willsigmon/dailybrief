@@ -60,3 +60,7 @@
 - [x] Frontend progress bar UI component
 - [x] Real-time status updates during generation
 - [x] Step-by-step progress indicators (Fetching data, Generating alerts, Analyzing opportunities, etc.)
+
+## Current Issues
+
+- [x] Fix briefing generation not completing

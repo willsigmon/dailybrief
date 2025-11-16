@@ -60,7 +60,8 @@ export async function generateDailyBriefing(sessionId?: string): Promise<number>
     progressTracker.startSession(trackingId);
   }
   
-  console.log('[Briefing] Starting daily briefing generation...');
+  try {
+    console.log('[Briefing] Starting daily briefing generation...');
 
   // Step 1: Fetch data from all sources
   if (sessionId) {
@@ -225,6 +226,13 @@ Action Required: ${alert.actionRequired}
   }
 
   // Step 7: Generate executive summary
+  if (sessionId) {
+    progressTracker.updateProgress(trackingId, {
+      step: 'generating-summary',
+      progress: 90,
+      message: 'Generating executive summary...',
+    });
+  }
   console.log('[Briefing] Generating executive summary...');
   const urgentCount = allAlerts.filter(a => a.type === 'urgent').length;
   const importantCount = allAlerts.filter(a => a.type === 'important').length;
@@ -235,24 +243,50 @@ Action Required: ${alert.actionRequired}
     .slice(0, 3)
     .map(a => a.title);
 
-  const executiveSummary = await generateExecutiveSummary(
-    { urgent: urgentCount, important: importantCount, strategic: strategicCount },
-    topOpportunities
-  );
+  let executiveSummary: string;
+  try {
+    executiveSummary = await generateExecutiveSummary(
+      { urgent: urgentCount, important: importantCount, strategic: strategicCount },
+      topOpportunities
+    );
+  } catch (error) {
+    console.error('[Briefing] Executive summary generation failed:', error);
+    // Fallback summary
+    executiveSummary = `Today's briefing includes ${urgentCount} urgent action${urgentCount !== 1 ? 's' : ''}, ${importantCount} important item${importantCount !== 1 ? 's' : ''}, and ${strategicCount} strategic opportunit${strategicCount !== 1 ? 'ies' : 'y'}. ${topOpportunities.length > 0 ? `Key opportunities: ${topOpportunities.join(', ')}.` : ''}`;
+  }
 
   // Update briefing with executive summary
-  const dbInstance = await db.getDb();
-  if (dbInstance) {
-    await dbInstance.update(briefings)
-      .set({ executiveSummary, updatedAt: new Date() })
-      .where(eq(briefings.id, briefingId));
+  try {
+    const dbInstance = await db.getDb();
+    if (dbInstance) {
+      await dbInstance.update(briefings)
+        .set({ executiveSummary, updatedAt: new Date() })
+        .where(eq(briefings.id, briefingId));
+      console.log('[Briefing] Executive summary updated successfully');
+    }
+  } catch (error) {
+    console.error('[Briefing] Failed to update executive summary:', error);
+    throw new Error('Failed to save executive summary');
   }
 
-  console.log('[Briefing] Daily briefing generation complete!');
-  
-  if (sessionId) {
-    progressTracker.completeSession(trackingId, true, 'Briefing generated successfully!');
+    console.log('[Briefing] Daily briefing generation complete!');
+    
+    if (sessionId) {
+      progressTracker.completeSession(trackingId, true, 'Briefing generated successfully!');
+    }
+    
+    return briefingId;
+  } catch (error) {
+    console.error('[Briefing] Generation failed:', error);
+    
+    if (sessionId) {
+      progressTracker.completeSession(
+        trackingId,
+        false,
+        `Generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+    
+    throw error;
   }
-  
-  return briefingId;
 }
