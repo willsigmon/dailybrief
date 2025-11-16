@@ -52,4 +52,4 @@
 - [ ] Demo mode with sample data
 - [x] Better onboarding experience
 
-- [x] Fix briefing generation error
+- [x] Fix NaN database error in briefing generation

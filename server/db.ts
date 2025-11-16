@@ -123,7 +123,9 @@ export async function createBriefing(data: InsertBriefing) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(briefings).values(data);
-  return result;
+  // Extract the inserted ID from the result
+  const insertId = (result as any)[0]?.insertId || (result as any).insertId;
+  return { insertId: Number(insertId) };
 }
 
 // Alert queries

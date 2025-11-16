@@ -74,7 +74,12 @@ export async function generateDailyBriefing(): Promise<number> {
     executiveSummary: 'Generating...', // Will update later
   });
 
-  const briefingId = Number((briefingResult as any).insertId);
+  const briefingId = briefingResult.insertId;
+  
+  if (!briefingId || isNaN(briefingId)) {
+    throw new Error(`Failed to create briefing: invalid ID ${briefingId}`);
+  }
+  
   console.log(`[Briefing] Created briefing record: ${briefingId}`);
 
   // Step 3: Generate alerts
