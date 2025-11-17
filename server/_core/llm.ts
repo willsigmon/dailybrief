@@ -312,21 +312,47 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.response_format = normalizedResponseFormat;
   }
 
-  const response = await fetch(resolveApiUrl(), {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
+  // Use retry logic and circuit breaker for LLM calls
+  const { retryWithBackoff, isRetryableError } = await import('./retry');
+  const { llmCircuitBreaker } = await import('./circuitBreaker');
+
+  return llmCircuitBreaker.execute(() => retryWithBackoff(
+    async () => {
+      const response = await fetch(resolveApiUrl(), {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${ENV.forgeApiKey}`,
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(60000), // 60 second timeout
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        const error = new Error(
+          `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
+        );
+        // Don't retry on 4xx errors (client errors)
+        if (response.status >= 400 && response.status < 500) {
+          throw error;
+        }
+        throw error;
+      }
+
+      return (await response.json()) as InvokeResult;
     },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
-    );
-  }
-
-  return (await response.json()) as InvokeResult;
+    {
+      maxRetries: 3,
+      initialDelayMs: 1000,
+      maxDelayMs: 10000,
+      retryableErrors: (error) => {
+        if (error instanceof Error) {
+          // Retry on network errors, timeouts, and 5xx errors
+          return isRetryableError(error) || error.message.includes('500') || error.message.includes('502') || error.message.includes('503');
+        }
+        return false;
+      },
+    }
+  ));
 }

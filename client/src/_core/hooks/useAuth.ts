@@ -42,15 +42,22 @@ export function useAuth(options?: UseAuthOptions) {
   }, [logoutMutation, utils]);
 
   const state = useMemo(() => {
+    // Temporary: Mock user for development when OAuth is not configured
+    const mockUser = import.meta.env.DEV && !import.meta.env.VITE_OAUTH_PORTAL_URL
+      ? { id: 1, name: "Demo User", email: "demo@example.com", role: "user" as const }
+      : null;
+
+    const user = meQuery.data ?? mockUser;
+
     localStorage.setItem(
       "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
+      JSON.stringify(user)
     );
     return {
-      user: meQuery.data ?? null,
+      user: user,
       loading: meQuery.isLoading || logoutMutation.isPending,
       error: meQuery.error ?? logoutMutation.error ?? null,
-      isAuthenticated: Boolean(meQuery.data),
+      isAuthenticated: Boolean(user),
     };
   }, [
     meQuery.data,

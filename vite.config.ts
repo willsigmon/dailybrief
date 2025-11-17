@@ -6,8 +6,15 @@ import path from "path";
 import { defineConfig } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
-
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime()];
+// Make Manus runtime plugin optional - only include if MANUS_RUNTIME env var is set
+// This allows the app to run standalone without Manus hosting
+const plugins = [
+  react(),
+  tailwindcss(),
+  jsxLocPlugin(),
+  // Only include Manus runtime plugin if explicitly enabled
+  ...(process.env.MANUS_RUNTIME === 'true' ? [vitePluginManusRuntime()] : [])
+];
 
 export default defineConfig({
   plugins,

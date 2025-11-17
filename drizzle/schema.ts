@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, index } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -27,7 +27,9 @@ export const briefings = mysqlTable("briefings", {
   executiveSummary: text("executiveSummary"),
   generatedAt: timestamp("generatedAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  dateIdx: index("briefings_date_idx").on(table.date),
+}));
 
 export type Briefing = typeof briefings.$inferSelect;
 export type InsertBriefing = typeof briefings.$inferInsert;
@@ -49,7 +51,12 @@ export const alerts = mysqlTable("alerts", {
   completed: boolean("completed").default(false).notNull(),
   completedAt: timestamp("completedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  briefingIdIdx: index("alerts_briefingId_idx").on(table.briefingId),
+  typeIdx: index("alerts_type_idx").on(table.type),
+  completedIdx: index("alerts_completed_idx").on(table.completed),
+  deadlineIdx: index("alerts_deadline_idx").on(table.deadline),
+}));
 
 export type Alert = typeof alerts.$inferSelect;
 export type InsertAlert = typeof alerts.$inferInsert;
@@ -69,7 +76,11 @@ export const relationships = mysqlTable("relationships", {
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  emailIdx: index("relationships_email_idx").on(table.email),
+  healthScoreIdx: index("relationships_healthScore_idx").on(table.healthScore),
+  lastInteractionIdx: index("relationships_lastInteraction_idx").on(table.lastInteraction),
+}));
 
 export type Relationship = typeof relationships.$inferSelect;
 export type InsertRelationship = typeof relationships.$inferInsert;
@@ -89,7 +100,10 @@ export const calendarEvents = mysqlTable("calendarEvents", {
   eventType: varchar("eventType", { length: 100 }), // meeting, networking, event
   strategicValue: text("strategicValue"),
   preparationNeeded: text("preparationNeeded"),
-});
+}, (table) => ({
+  briefingIdIdx: index("calendarEvents_briefingId_idx").on(table.briefingId),
+  startTimeIdx: index("calendarEvents_startTime_idx").on(table.startTime),
+}));
 
 export type CalendarEvent = typeof calendarEvents.$inferSelect;
 export type InsertCalendarEvent = typeof calendarEvents.$inferInsert;
@@ -109,7 +123,9 @@ export const llmAnalyses = mysqlTable("llmAnalyses", {
   dissent: text("dissent"), // Summary of disagreements
   recommendation: text("recommendation"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+}, (table) => ({
+  briefingIdIdx: index("llmAnalyses_briefingId_idx").on(table.briefingId),
+}));
 
 export type LlmAnalysis = typeof llmAnalyses.$inferSelect;
 export type InsertLlmAnalysis = typeof llmAnalyses.$inferInsert;

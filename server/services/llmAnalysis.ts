@@ -1,4 +1,7 @@
 import { invokeLLM } from '../_core/llm';
+import { retryWithBackoff, isRetryableError } from '../_core/retry';
+import { logger, logError } from '../_core/logger';
+import { trackLLMCall } from '../_core/metrics';
 
 export interface OpportunityAnalysis {
   claude: string;
@@ -8,12 +11,15 @@ export interface OpportunityAnalysis {
   consensus: string;
   dissent: string;
   recommendation: string;
+  confidenceScore?: number; // 0-100
+  modelAgreement?: number; // 0-100, how much models agree
 }
 
 /**
  * Analyze an opportunity using Claude Sonnet 4.5
  */
 async function analyzeWithClaude(prompt: string): Promise<string> {
+  const startTime = Date.now();
   try {
     const response = await invokeLLM({
       messages: [
@@ -29,10 +35,13 @@ async function analyzeWithClaude(prompt: string): Promise<string> {
     });
 
     const messageContent = response.choices[0]?.message?.content;
-    return typeof messageContent === 'string' ? messageContent : 'Analysis unavailable';
+    const result = typeof messageContent === 'string' ? messageContent : 'Analysis unavailable';
+    trackLLMCall('claude', true, Date.now() - startTime);
+    return result;
   } catch (error) {
-    console.error('[LLM] Claude analysis failed:', error);
-    return 'Analysis failed';
+    trackLLMCall('claude', false, Date.now() - startTime);
+    logError(error, { operation: 'analyzeWithClaude' });
+    return 'Analysis failed - service unavailable';
   }
 }
 
@@ -40,31 +49,49 @@ async function analyzeWithClaude(prompt: string): Promise<string> {
  * Analyze an opportunity using Gemini 2.5 Pro
  */
 async function analyzeWithGemini(prompt: string): Promise<string> {
+  const startTime = Date.now();
   try {
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': process.env.GEMINI_API_KEY || '',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `You are a data-driven business analyst. ${prompt}`
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 1024,
-        }
-      })
-    });
+    return await retryWithBackoff(
+      async () => {
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': process.env.GEMINI_API_KEY || '',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `You are a data-driven business analyst. ${prompt}`
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1024,
+            }
+          }),
+          signal: AbortSignal.timeout(30000), // 30 second timeout
+        });
 
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Analysis unavailable';
+        if (!response.ok) {
+          throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const result = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Analysis unavailable';
+        trackLLMCall('gemini', true, Date.now() - startTime);
+        return result;
+      },
+      {
+        maxRetries: 3,
+        initialDelayMs: 1000,
+        retryableErrors: isRetryableError,
+      }
+    );
   } catch (error) {
-    console.error('[LLM] Gemini analysis failed:', error);
-    return 'Analysis failed';
+    trackLLMCall('gemini', false, Date.now() - startTime);
+    logError(error, { operation: 'analyzeWithGemini' });
+    return 'Analysis failed - service unavailable';
   }
 }
 
@@ -72,35 +99,53 @@ async function analyzeWithGemini(prompt: string): Promise<string> {
  * Analyze an opportunity using Grok 4
  */
 async function analyzeWithGrok(prompt: string): Promise<string> {
+  const startTime = Date.now();
   try {
-    const response = await fetch('https://api.x.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.XAI_API_KEY || ''}`,
-      },
-      body: JSON.stringify({
-        model: 'grok-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a contrarian analyst. Provide devil\'s advocate perspective, highlighting risks, edge cases, and potential downsides. Be skeptical but constructive.'
+    return await retryWithBackoff(
+      async () => {
+        const response = await fetch('https://api.x.ai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.XAI_API_KEY || ''}`,
           },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1024,
-      })
-    });
+          body: JSON.stringify({
+            model: 'grok-4',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a contrarian analyst. Provide devil\'s advocate perspective, highlighting risks, edge cases, and potential downsides. Be skeptical but constructive.'
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 1024,
+          }),
+          signal: AbortSignal.timeout(30000), // 30 second timeout
+        });
 
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || 'Analysis unavailable';
+        if (!response.ok) {
+          throw new Error(`Grok API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const result = data.choices?.[0]?.message?.content || 'Analysis unavailable';
+        trackLLMCall('grok', true, Date.now() - startTime);
+        return result;
+      },
+      {
+        maxRetries: 3,
+        initialDelayMs: 1000,
+        retryableErrors: isRetryableError,
+      }
+    );
   } catch (error) {
-    console.error('[LLM] Grok analysis failed:', error);
-    return 'Analysis failed';
+    trackLLMCall('grok', false, Date.now() - startTime);
+    logError(error, { operation: 'analyzeWithGrok' });
+    return 'Analysis failed - service unavailable';
   }
 }
 
@@ -108,42 +153,114 @@ async function analyzeWithGrok(prompt: string): Promise<string> {
  * Analyze an opportunity using Perplexity Sonar Pro
  */
 async function analyzeWithPerplexity(prompt: string): Promise<string> {
+  const startTime = Date.now();
   try {
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.SONAR_API_KEY || ''}`,
-      },
-      body: JSON.stringify({
-        model: 'sonar-pro',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a research analyst with access to real-time information. Provide context from recent news, funding, market position, and credibility signals.'
+    return await retryWithBackoff(
+      async () => {
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.SONAR_API_KEY || ''}`,
           },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1024,
-      })
-    });
+          body: JSON.stringify({
+            model: 'sonar-pro',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a research analyst with access to real-time information. Provide context from recent news, funding, market position, and credibility signals.'
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 1024,
+          }),
+          signal: AbortSignal.timeout(30000), // 30 second timeout
+        });
 
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || 'Analysis unavailable';
+        if (!response.ok) {
+          throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const result = data.choices?.[0]?.message?.content || 'Analysis unavailable';
+        trackLLMCall('perplexity', true, Date.now() - startTime);
+        return result;
+      },
+      {
+        maxRetries: 3,
+        initialDelayMs: 1000,
+        retryableErrors: isRetryableError,
+      }
+    );
   } catch (error) {
-    console.error('[LLM] Perplexity analysis failed:', error);
-    return 'Analysis failed';
+    trackLLMCall('perplexity', false, Date.now() - startTime);
+    logError(error, { operation: 'analyzeWithPerplexity' });
+    return 'Analysis failed - service unavailable';
   }
 }
 
 /**
- * Generate consensus and dissent summary using Claude
+ * Calculate confidence score based on model agreement
  */
-async function generateConsensusSummary(analyses: { claude: string; gemini: string; grok: string; perplexity: string }): Promise<{ consensus: string; dissent: string; recommendation: string }> {
+function calculateConfidenceScore(analyses: { claude: string; gemini: string; grok: string; perplexity: string }): number {
+  // Simple keyword-based agreement detection
+  const keywords = ['recommend', 'proceed', 'opportunity', 'strategic', 'risk', 'concern', 'positive', 'negative'];
+  const keywordCounts = new Map<string, number>();
+
+  for (const [model, analysis] of Object.entries(analyses)) {
+    const lowerAnalysis = analysis.toLowerCase();
+    for (const keyword of keywords) {
+      if (lowerAnalysis.includes(keyword)) {
+        keywordCounts.set(keyword, (keywordCounts.get(keyword) || 0) + 1);
+      }
+    }
+  }
+
+  // Calculate agreement based on shared keywords
+  const totalKeywords = keywordCounts.size;
+  const sharedKeywords = Array.from(keywordCounts.values()).filter(count => count >= 3).length; // At least 3 models agree
+
+  // Base confidence on agreement
+  const agreementRatio = totalKeywords > 0 ? sharedKeywords / totalKeywords : 0;
+  return Math.round(agreementRatio * 100);
+}
+
+/**
+ * Calculate model agreement percentage
+ */
+function calculateModelAgreement(analyses: { claude: string; gemini: string; grok: string; perplexity: string }): number {
+  // Extract sentiment/key recommendations from each analysis
+  const sentiments: ('positive' | 'negative' | 'neutral')[] = [];
+
+  for (const analysis of Object.values(analyses)) {
+    const lower = analysis.toLowerCase();
+    if (lower.includes('recommend') || lower.includes('proceed') || lower.includes('positive')) {
+      sentiments.push('positive');
+    } else if (lower.includes('risk') || lower.includes('concern') || lower.includes('negative') || lower.includes('avoid')) {
+      sentiments.push('negative');
+    } else {
+      sentiments.push('neutral');
+    }
+  }
+
+  // Count agreement
+  const positiveCount = sentiments.filter(s => s === 'positive').length;
+  const negativeCount = sentiments.filter(s => s === 'negative').length;
+  const neutralCount = sentiments.filter(s => s === 'neutral').length;
+
+  // Agreement is highest count / total
+  const maxCount = Math.max(positiveCount, negativeCount, neutralCount);
+  return Math.round((maxCount / 4) * 100);
+}
+
+/**
+ * Generate consensus and dissent summary using Claude with weighted voting
+ */
+async function generateConsensusSummary(analyses: { claude: string; gemini: string; grok: string; perplexity: string }): Promise<{ consensus: string; dissent: string; recommendation: string; confidenceScore: number; modelAgreement: number }> {
   const prompt = `Analyze these four AI model perspectives on a business opportunity and provide:
 
 1. CONSENSUS: What do all models agree on? (2-3 sentences)
@@ -174,22 +291,34 @@ RECOMMENDATION: [your recommendation]`;
 
     const messageContent = response.choices[0]?.message?.content;
     const content = typeof messageContent === 'string' ? messageContent : '';
-    
+
     const consensusMatch = content.match(/CONSENSUS:[\s\S]*?([^\n]+)/);
     const dissentMatch = content.match(/DISSENT:[\s\S]*?([^\n]+)/);
     const recommendationMatch = content.match(/RECOMMENDATION:[\s\S]*?([^\n]+)/);
 
+    const consensus = consensusMatch?.[1]?.trim() || 'Unable to determine consensus';
+    const dissent = dissentMatch?.[1]?.trim() || 'No significant dissent';
+    const recommendation = recommendationMatch?.[1]?.trim() || 'Further analysis needed';
+
+    // Calculate confidence and agreement scores
+    const confidenceScore = calculateConfidenceScore(analyses);
+    const modelAgreement = calculateModelAgreement(analyses);
+
     return {
-      consensus: consensusMatch?.[1]?.trim() || 'Unable to determine consensus',
-      dissent: dissentMatch?.[1]?.trim() || 'No significant dissent',
-      recommendation: recommendationMatch?.[1]?.trim() || 'Further analysis needed',
+      consensus,
+      dissent,
+      recommendation,
+      confidenceScore,
+      modelAgreement,
     };
   } catch (error) {
-    console.error('[LLM] Consensus generation failed:', error);
+    logError(error, { operation: 'generateConsensusSummary' });
     return {
       consensus: 'Analysis incomplete',
       dissent: 'Analysis incomplete',
       recommendation: 'Manual review required',
+      confidenceScore: 0,
+      modelAgreement: 0,
     };
   }
 }
@@ -217,9 +346,10 @@ Provide a strategic recommendation on whether to prioritize this opportunity. Co
 
 Be direct, actionable, and highlight what matters most. Keep your response to 3-4 sentences.`;
 
-  console.log(`[LLM] Starting multi-model analysis for: ${topic}`);
+  logger.debug('Starting multi-model analysis', { topic });
 
   // Run all analyses in parallel
+  const analysisStartTime = Date.now();
   const [claude, gemini, grok, perplexity] = await Promise.all([
     analyzeWithClaude(analysisPrompt),
     analyzeWithGemini(analysisPrompt),
@@ -227,10 +357,13 @@ Be direct, actionable, and highlight what matters most. Keep your response to 3-
     analyzeWithPerplexity(analysisPrompt),
   ]);
 
-  console.log('[LLM] All model analyses complete, generating consensus...');
+  logger.debug('All model analyses complete, generating consensus', {
+    topic,
+    durationMs: Date.now() - analysisStartTime,
+  });
 
-  // Generate consensus summary
-  const { consensus, dissent, recommendation } = await generateConsensusSummary({
+  // Generate consensus summary with confidence scores
+  const { consensus, dissent, recommendation, confidenceScore, modelAgreement } = await generateConsensusSummary({
     claude,
     gemini,
     grok,
@@ -245,5 +378,7 @@ Be direct, actionable, and highlight what matters most. Keep your response to 3-
     consensus,
     dissent,
     recommendation,
+    confidenceScore,
+    modelAgreement,
   };
 }

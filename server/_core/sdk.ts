@@ -14,6 +14,19 @@ import type {
   GetUserInfoWithJwtRequest,
   GetUserInfoWithJwtResponse,
 } from "./types/manusTypes";
+
+/**
+ * Extended user info response that may include additional fields from OAuth server
+ */
+interface ExtendedGetUserInfoResponse extends GetUserInfoResponse {
+  platforms?: string[];
+  platform?: string | null;
+}
+
+interface ExtendedGetUserInfoWithJwtResponse extends GetUserInfoWithJwtResponse {
+  platforms?: string[];
+  platform?: string | null;
+}
 // Utility function
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0;
@@ -134,15 +147,18 @@ class SDKServer {
     const data = await this.oauthService.getUserInfoByToken({
       accessToken,
     } as ExchangeTokenResponse);
+
+    const extendedData = data as unknown as ExtendedGetUserInfoResponse;
     const loginMethod = this.deriveLoginMethod(
-      (data as any)?.platforms,
-      (data as any)?.platform ?? data.platform ?? null
+      extendedData?.platforms,
+      extendedData?.platform ?? data.platform ?? null
     );
+
     return {
-      ...(data as any),
+      ...data,
       platform: loginMethod,
       loginMethod,
-    } as GetUserInfoResponse;
+    };
   }
 
   private parseCookies(cookieHeader: string | undefined) {
@@ -245,15 +261,17 @@ class SDKServer {
       payload
     );
 
+    const extendedData = data as unknown as ExtendedGetUserInfoWithJwtResponse;
     const loginMethod = this.deriveLoginMethod(
-      (data as any)?.platforms,
-      (data as any)?.platform ?? data.platform ?? null
+      extendedData?.platforms,
+      extendedData?.platform ?? data.platform ?? null
     );
+
     return {
-      ...(data as any),
+      ...data,
       platform: loginMethod,
       loginMethod,
-    } as GetUserInfoWithJwtResponse;
+    };
   }
 
   async authenticateRequest(req: Request): Promise<User> {

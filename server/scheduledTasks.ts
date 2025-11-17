@@ -1,25 +1,76 @@
 import { generateDailyBriefing } from './services/briefingGenerator';
+import { retryWithBackoff, isRetryableError } from './_core/retry';
+import { logger, logError } from './_core/logger';
+
+interface TaskExecutionResult {
+  success: boolean;
+  briefingId?: number;
+  error?: Error;
+  retries?: number;
+}
 
 /**
  * Scheduled task: Generate daily briefing at 8 AM on weekdays
  * This function is called by the cron scheduler
+ * Includes error recovery with retry logic
  */
-export async function runDailyBriefingTask() {
+export async function runDailyBriefingTask(): Promise<TaskExecutionResult> {
   const now = new Date();
   const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
 
   // Only run on weekdays (Monday-Friday)
   if (dayOfWeek === 0 || dayOfWeek === 6) {
-    console.log('[Scheduler] Skipping briefing generation on weekend');
-    return;
+    logger.debug('Skipping briefing generation on weekend', { dayOfWeek });
+    return { success: true };
   }
 
-  console.log('[Scheduler] Starting scheduled daily briefing generation...');
-  
+  logger.info('Starting scheduled daily briefing generation', { dayOfWeek, timestamp: now.toISOString() });
+
+  let retryCount = 0;
+
   try {
-    const briefingId = await generateDailyBriefing();
-    console.log(`[Scheduler] Daily briefing generated successfully: ${briefingId}`);
+    const briefingId = await retryWithBackoff(
+      async () => {
+        retryCount++;
+        return await generateDailyBriefing();
+      },
+      {
+        maxRetries: 2, // Retry up to 2 times for scheduled tasks
+        initialDelayMs: 5000, // 5 second delay between retries
+        maxDelayMs: 30000,
+        retryableErrors: (error) => {
+          // Retry on transient errors
+          if (error instanceof Error) {
+            return (
+              isRetryableError(error) ||
+              error.message.includes('timeout') ||
+              error.message.includes('network') ||
+              error.message.includes('ECONNREFUSED')
+            );
+          }
+          return false;
+        },
+      }
+    );
+
+    logger.info('Daily briefing generated successfully', {
+      briefingId,
+      retries: retryCount - 1,
+    });
+    return { success: true, briefingId, retries: retryCount - 1 };
   } catch (error) {
-    console.error('[Scheduler] Failed to generate daily briefing:', error);
+    logError(error, {
+      operation: 'runDailyBriefingTask',
+      retries: retryCount - 1,
+    });
+
+    // TODO: Add notification system (email/logging service) for critical failures
+    // This would notify administrators of persistent failures
+
+    return {
+      success: false,
+      error: error instanceof Error ? error : new Error(String(error)),
+      retries: retryCount - 1,
+    };
   }
 }

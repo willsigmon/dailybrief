@@ -1,21 +1,107 @@
 import type { InsertAlert } from '../../drizzle/schema';
+import type { GmailMessage, CalendarEvent } from './mcpIntegration';
 
-interface GmailMessage {
-  id: string;
-  from: string;
-  to: string;
-  subject: string;
-  date: Date;
-  content: string;
+/**
+ * Check if two alerts are duplicates
+ */
+function areAlertsDuplicate(alert1: Omit<InsertAlert, 'id' | 'createdAt'>, alert2: Omit<InsertAlert, 'id' | 'createdAt'>): boolean {
+  // Same type and category
+  if (alert1.type !== alert2.type || alert1.category !== alert2.category) {
+    return false;
+  }
+
+  // Same contact
+  if (alert1.contactName !== alert2.contactName) {
+    return false;
+  }
+
+  // Similar titles (fuzzy match)
+  const title1 = alert1.title.toLowerCase();
+  const title2 = alert2.title.toLowerCase();
+  const similarity = calculateStringSimilarity(title1, title2);
+
+  return similarity > 0.7; // 70% similarity threshold
 }
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  description: string | null;
-  startTime: Date;
-  endTime: Date;
-  attendees: string[];
+/**
+ * Calculate string similarity using Levenshtein distance
+ */
+function calculateStringSimilarity(str1: string, str2: string): number {
+  const longer = str1.length > str2.length ? str1 : str2;
+  const shorter = str1.length > str2.length ? str2 : str1;
+
+  if (longer.length === 0) return 1.0;
+
+  const distance = levenshteinDistance(longer, shorter);
+  return (longer.length - distance) / longer.length;
+}
+
+/**
+ * Calculate Levenshtein distance between two strings
+ */
+function levenshteinDistance(str1: string, str2: string): number {
+  const matrix: number[][] = [];
+
+  for (let i = 0; i <= str2.length; i++) {
+    matrix[i] = [i];
+  }
+
+  for (let j = 0; j <= str1.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= str2.length; i++) {
+    for (let j = 1; j <= str1.length; j++) {
+      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+
+  return matrix[str2.length][str1.length];
+}
+
+/**
+ * Deduplicate alerts based on similarity
+ */
+export function deduplicateAlerts(alerts: Omit<InsertAlert, 'id' | 'createdAt'>[]): Omit<InsertAlert, 'id' | 'createdAt'>[] {
+  const deduplicated: Omit<InsertAlert, 'id' | 'createdAt'>[] = [];
+  const seen = new Set<string>();
+
+  for (const alert of alerts) {
+    // Create a signature for quick duplicate checking
+    const signature = `${alert.type}:${alert.category}:${alert.contactName}:${alert.title}`;
+
+    // Check if we've seen a similar alert
+    let isDuplicate = false;
+    for (const seenAlert of deduplicated) {
+      if (areAlertsDuplicate(alert, seenAlert)) {
+        isDuplicate = true;
+        // Keep the one with earlier deadline or more urgent
+        if (alert.deadline && seenAlert.deadline && alert.deadline < seenAlert.deadline) {
+          const index = deduplicated.indexOf(seenAlert);
+          deduplicated[index] = alert;
+        } else if (!seenAlert.deadline && alert.deadline) {
+          const index = deduplicated.indexOf(seenAlert);
+          deduplicated[index] = alert;
+        }
+        break;
+      }
+    }
+
+    if (!isDuplicate && !seen.has(signature)) {
+      deduplicated.push(alert);
+      seen.add(signature);
+    }
+  }
+
+  return deduplicated;
 }
 
 /**
@@ -33,7 +119,7 @@ export function generateResponseUrgencyAlerts(
 
   const recentMeetingEmails = messages.filter(m => {
     const isRecent = m.date >= yesterday;
-    const isMeetingRelated = m.subject.toLowerCase().includes('meeting') || 
+    const isMeetingRelated = m.subject.toLowerCase().includes('meeting') ||
                             m.subject.toLowerCase().includes('call') ||
                             m.content.toLowerCase().includes('thank you for') ||
                             m.content.toLowerCase().includes('great to meet');
@@ -73,11 +159,11 @@ export function generateRelationshipCoolingAlerts(
 
   // Group messages by contact
   const contactMap = new Map<string, GmailMessage[]>();
-  
+
   for (const msg of messages) {
     const email = extractEmail(msg.from);
     if (!email || email.includes('noreply') || email.includes('no-reply')) continue;
-    
+
     if (!contactMap.has(email)) {
       contactMap.set(email, []);
     }
@@ -88,7 +174,7 @@ export function generateRelationshipCoolingAlerts(
 
   const contactEntries = Array.from(contactMap.entries());
   for (const [email, contactMessages] of contactEntries) {
-    const sortedMessages = contactMessages.sort((a: GmailMessage, b: GmailMessage) => b.date.getTime() - a.date.getTime());
+    const sortedMessages = contactMessages.sort((a, b) => b.date.getTime() - a.date.getTime());
     const mostRecent = sortedMessages[0];
     const daysSinceContact = Math.floor((now.getTime() - mostRecent.date.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -98,9 +184,9 @@ export function generateRelationshipCoolingAlerts(
       const organization = extractOrganization(mostRecent.from);
 
       // Check if response length decreased (engagement signal)
-      const recentAvgLength = sortedMessages.slice(0, 2).reduce((sum: number, m: GmailMessage) => sum + m.content.length, 0) / 2;
-      const olderAvgLength = sortedMessages.slice(2, 4).reduce((sum: number, m: GmailMessage) => sum + m.content.length, 0) / Math.min(2, sortedMessages.length - 2);
-      
+      const recentAvgLength = sortedMessages.slice(0, 2).reduce((sum, m) => sum + m.content.length, 0) / 2;
+      const olderAvgLength = sortedMessages.slice(2, 4).reduce((sum, m) => sum + m.content.length, 0) / Math.min(2, sortedMessages.length - 2);
+
       const engagementDropped = olderAvgLength > 0 && recentAvgLength < olderAvgLength * 0.5;
 
       alerts.push({
@@ -234,10 +320,10 @@ function extractEmail(from: string): string | null {
 function extractOrganization(from: string): string | null {
   const email = extractEmail(from);
   if (!email) return null;
-  
+
   const domain = email.split('@')[1];
   if (!domain) return null;
-  
+
   const orgName = domain.split('.')[0];
   return orgName.charAt(0).toUpperCase() + orgName.slice(1);
 }

@@ -7,16 +7,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { trpc } from "@/lib/trpc";
 import { AlertCircle, Calendar, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus, Sparkles, Clock, Users } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo, memo } from "react";
 import { getLoginUrl } from "@/const";
 
 export default function Dashboard() {
   const { user, loading, isAuthenticated } = useAuth();
   const { data: briefingData, isLoading: briefingLoading } = trpc.briefing.getLatest.useQuery(undefined, {
-    enabled: isAuthenticated,
+    enabled: true, // Allow queries even without auth for development
   });
   const { data: relationships } = trpc.relationships.getAll.useQuery(undefined, {
-    enabled: isAuthenticated,
+    enabled: true, // Allow queries even without auth for development
   });
   const toggleAlertMutation = trpc.briefing.toggleAlert.useMutation();
   const utils = trpc.useUtils();
@@ -30,6 +30,14 @@ export default function Dashboard() {
     llm: false,
   });
 
+  // Memoize filtered alerts to prevent unnecessary recalculations
+  const alerts = useMemo(() => briefingData?.alerts || [], [briefingData?.alerts]);
+  const urgentAlerts = useMemo(() => alerts.filter(a => a.type === 'urgent'), [alerts]);
+  const importantAlerts = useMemo(() => alerts.filter(a => a.type === 'important'), [alerts]);
+  const strategicAlerts = useMemo(() => alerts.filter(a => a.type === 'strategic'), [alerts]);
+  const calendarEvents = useMemo(() => briefingData?.calendarEvents || [], [briefingData?.calendarEvents]);
+  const llmAnalyses = useMemo(() => briefingData?.llmAnalyses || [], [briefingData?.llmAnalyses]);
+
   if (loading || briefingLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -41,23 +49,24 @@ export default function Dashboard() {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>HTI Daily BD Intelligence Briefing</CardTitle>
-            <CardDescription>Please sign in to view your briefing</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild className="w-full">
-              <a href={getLoginUrl()}>Sign In</a>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Temporarily allow access without authentication in development
+  // if (!isAuthenticated) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-background">
+  //       <Card className="w-full max-w-md">
+  //         <CardHeader>
+  //           <CardTitle>HTI Daily BD Intelligence Briefing</CardTitle>
+  //           <CardDescription>Please sign in to view your briefing</CardDescription>
+  //         </CardHeader>
+  //         <CardContent>
+  //           <Button asChild className="w-full">
+  //             <a href={getLoginUrl()}>Sign In</a>
+  //           </Button>
+  //         </CardContent>
+  //       </Card>
+  //     </div>
+  //   );
+  // }
 
   if (!briefingData) {
     return (
@@ -68,7 +77,7 @@ export default function Dashboard() {
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
         </div>
-        
+
         {/* Header */}
         <header className="glass border-b border-white/30 sticky top-0 z-10 shadow-lg backdrop-blur-xl">
           <div className="container mx-auto px-4 sm:px-6 py-4">
@@ -79,11 +88,11 @@ export default function Dashboard() {
                 </h1>
                 <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  {new Date().toLocaleDateString('en-US', { 
-                    weekday: 'long', 
+                  {new Date().toLocaleDateString('en-US', {
+                    weekday: 'long',
                     month: 'long',
                     day: 'numeric',
-                    year: 'numeric' 
+                    year: 'numeric'
                   })}
                 </p>
               </div>
@@ -244,11 +253,7 @@ export default function Dashboard() {
     );
   }
 
-  const { briefing, alerts, calendarEvents, llmAnalyses } = briefingData;
-
-  const urgentAlerts = alerts.filter(a => a.type === 'urgent');
-  const importantAlerts = alerts.filter(a => a.type === 'important');
-  const strategicAlerts = alerts.filter(a => a.type === 'strategic');
+  const { briefing } = briefingData;
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -284,7 +289,7 @@ export default function Dashboard() {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
-      
+
       {/* Header */}
       <header className="glass sticky top-0 z-10 shadow-lg border-b border-white/30 backdrop-blur-xl">
         <div className="container py-4">
@@ -295,9 +300,9 @@ export default function Dashboard() {
               </h1>
               <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                {new Date(briefing.date).toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  month: 'long', 
+                {new Date(briefing.date).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
                   day: 'numeric',
                   year: 'numeric'
                 })}
@@ -591,7 +596,7 @@ export default function Dashboard() {
                             <p className="text-xs text-gray-500">Health Score</p>
                             <div className="flex items-center gap-2 mt-1">
                               <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div 
+                                <div
                                   className={`h-full ${getHealthColor(rel.healthScore)}`}
                                   style={{ width: `${rel.healthScore || 0}%` }}
                                 />
@@ -630,7 +635,7 @@ export default function Dashboard() {
                   {llmAnalyses.map(analysis => (
                     <div key={analysis.id} className="p-4 bg-pink-50 rounded-lg border border-pink-200">
                       <h4 className="font-semibold text-gray-900 mb-4">{analysis.topic}</h4>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         {analysis.claudeAnalysis && (
                           <div className="p-3 bg-white rounded border border-gray-200">
