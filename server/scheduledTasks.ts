@@ -1,6 +1,7 @@
 import { generateDailyBriefing } from './services/briefingGenerator';
 import { retryWithBackoff, isRetryableError } from './_core/retry';
 import { logger, logError } from './_core/logger';
+import { notifyOwner } from './_core/notification';
 
 interface TaskExecutionResult {
   success: boolean;
@@ -57,6 +58,12 @@ export async function runDailyBriefingTask(): Promise<TaskExecutionResult> {
       briefingId,
       retries: retryCount - 1,
     });
+
+    await notifyOwner({
+        title: 'Daily Briefing Generated Successfully',
+        content: `Briefing ID: ${briefingId} generated at ${new Date().toISOString()}`
+    });
+
     return { success: true, briefingId, retries: retryCount - 1 };
   } catch (error) {
     logError(error, {
@@ -64,8 +71,10 @@ export async function runDailyBriefingTask(): Promise<TaskExecutionResult> {
       retries: retryCount - 1,
     });
 
-    // TODO: Add notification system (email/logging service) for critical failures
-    // This would notify administrators of persistent failures
+    await notifyOwner({
+        title: 'Daily Briefing Generation FAILED',
+        content: `Failed to generate briefing after ${retryCount} attempts.\nError: ${error instanceof Error ? error.message : String(error)}`
+    });
 
     return {
       success: false,

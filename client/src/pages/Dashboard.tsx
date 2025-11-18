@@ -13,10 +13,10 @@ import { getLoginUrl } from "@/const";
 export default function Dashboard() {
   const { user, loading, isAuthenticated } = useAuth();
   const { data: briefingData, isLoading: briefingLoading } = trpc.briefing.getLatest.useQuery(undefined, {
-    enabled: true, // Allow queries even without auth for development
+    enabled: isAuthenticated, // Only fetch if authenticated
   });
   const { data: relationships } = trpc.relationships.getAll.useQuery(undefined, {
-    enabled: true, // Allow queries even without auth for development
+    enabled: isAuthenticated, // Only fetch if authenticated
   });
   const toggleAlertMutation = trpc.briefing.toggleAlert.useMutation();
   const utils = trpc.useUtils();
@@ -38,7 +38,7 @@ export default function Dashboard() {
   const calendarEvents = useMemo(() => briefingData?.calendarEvents || [], [briefingData?.calendarEvents]);
   const llmAnalyses = useMemo(() => briefingData?.llmAnalyses || [], [briefingData?.llmAnalyses]);
 
-  if (loading || briefingLoading) {
+  if (loading || (isAuthenticated && briefingLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -49,26 +49,26 @@ export default function Dashboard() {
     );
   }
 
-  // Temporarily allow access without authentication in development
-  // if (!isAuthenticated) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-background">
-  //       <Card className="w-full max-w-md">
-  //         <CardHeader>
-  //           <CardTitle>HTI Daily BD Intelligence Briefing</CardTitle>
-  //           <CardDescription>Please sign in to view your briefing</CardDescription>
-  //         </CardHeader>
-  //         <CardContent>
-  //           <Button asChild className="w-full">
-  //             <a href={getLoginUrl()}>Sign In</a>
-  //           </Button>
-  //         </CardContent>
-  //       </Card>
-  //     </div>
-  //   );
-  // }
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>HTI Daily BD Intelligence Briefing</CardTitle>
+            <CardDescription>Please sign in to view your briefing</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full">
+              <a href={getLoginUrl()}>Sign In</a>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!briefingData) {
+    // ... welcome/empty state (same as before)
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative overflow-hidden">
         {/* Animated background */}
@@ -255,6 +255,7 @@ export default function Dashboard() {
 
   const { briefing } = briefingData;
 
+  // ... helper functions (same as before)
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };

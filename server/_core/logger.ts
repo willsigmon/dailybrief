@@ -26,10 +26,54 @@ const colors = {
 
 winston.addColors(colors);
 
+// PII Redaction
+const SENSITIVE_KEYS = [
+  'password', 'token', 'key', 'secret', 'authorization', 'cookie',
+  'gmailMessages', 'calendarEvents', 'limitlessRecordings', // Large data blobs
+  'content', 'snippet', 'transcript', 'body' // Message content
+];
+
+function redactPII(obj: any): any {
+  if (typeof obj !== 'object' || obj === null) return obj;
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => redactPII(item));
+  }
+
+  const newObj: any = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const lowerKey = key.toLowerCase();
+      if (SENSITIVE_KEYS.some(k => lowerKey.includes(k.toLowerCase()))) {
+        if (Array.isArray(obj[key])) {
+             newObj[key] = `[REDACTED ARRAY len=${obj[key].length}]`;
+        } else if (typeof obj[key] === 'string') {
+             newObj[key] = '[REDACTED]';
+        } else {
+             newObj[key] = '[REDACTED]';
+        }
+      } else if (typeof obj[key] === 'object') {
+        newObj[key] = redactPII(obj[key]);
+      } else {
+        newObj[key] = obj[key];
+      }
+    }
+  }
+  return newObj;
+}
+
+// Custom format to redact PII from metadata
+const piiRedactor = winston.format((info) => {
+  const { level, message, timestamp, ...meta } = info;
+  const redactedMeta = redactPII(meta);
+  return { level, message, timestamp, ...redactedMeta };
+});
+
 // Create log format
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
+  piiRedactor(),
   winston.format.splat(),
   winston.format.json()
 );
@@ -38,6 +82,7 @@ const logFormat = winston.format.combine(
 const consoleFormat = winston.format.combine(
   winston.format.colorize(),
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  piiRedactor(),
   winston.format.printf(({ timestamp, level, message, ...meta }) => {
     const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
     return `${timestamp} [${level}]: ${message} ${metaStr}`;

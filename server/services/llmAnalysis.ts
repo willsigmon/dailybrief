@@ -16,16 +16,25 @@ export interface OpportunityAnalysis {
 }
 
 /**
+ * Helper to wrap content in XML tags for safer LLM consumption
+ */
+function wrapInTags(tag: string, content: string): string {
+  // Basic sanitization to prevent tag injection
+  const safeContent = content.replace(new RegExp(`</${tag}>`, 'g'), `[/${tag}]`);
+  return `<${tag}>\n${safeContent}\n</${tag}>`;
+}
+
+/**
  * Analyze an opportunity using Claude Sonnet 4.5
  */
-async function analyzeWithClaude(prompt: string): Promise<string> {
+async function analyzeWithClaude(prompt: string, systemRole: string): Promise<string> {
   const startTime = Date.now();
   try {
     const response = await invokeLLM({
       messages: [
         {
           role: 'system',
-          content: 'You are a strategic business development advisor. Provide concise, actionable analysis focused on relationship signals, strategic fit, and risks. Be direct and highlight what matters most.'
+          content: systemRole
         },
         {
           role: 'user',
@@ -48,7 +57,7 @@ async function analyzeWithClaude(prompt: string): Promise<string> {
 /**
  * Analyze an opportunity using Gemini 2.5 Pro
  */
-async function analyzeWithGemini(prompt: string): Promise<string> {
+async function analyzeWithGemini(prompt: string, systemRole: string): Promise<string> {
   const startTime = Date.now();
   try {
     return await retryWithBackoff(
@@ -62,7 +71,7 @@ async function analyzeWithGemini(prompt: string): Promise<string> {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `You are a data-driven business analyst. ${prompt}`
+                text: `${systemRole}\n\n${prompt}`
               }]
             }],
             generationConfig: {
@@ -98,7 +107,7 @@ async function analyzeWithGemini(prompt: string): Promise<string> {
 /**
  * Analyze an opportunity using Grok 4
  */
-async function analyzeWithGrok(prompt: string): Promise<string> {
+async function analyzeWithGrok(prompt: string, systemRole: string): Promise<string> {
   const startTime = Date.now();
   try {
     return await retryWithBackoff(
@@ -114,7 +123,7 @@ async function analyzeWithGrok(prompt: string): Promise<string> {
             messages: [
               {
                 role: 'system',
-                content: 'You are a contrarian analyst. Provide devil\'s advocate perspective, highlighting risks, edge cases, and potential downsides. Be skeptical but constructive.'
+                content: systemRole
               },
               {
                 role: 'user',
@@ -152,7 +161,7 @@ async function analyzeWithGrok(prompt: string): Promise<string> {
 /**
  * Analyze an opportunity using Perplexity Sonar Pro
  */
-async function analyzeWithPerplexity(prompt: string): Promise<string> {
+async function analyzeWithPerplexity(prompt: string, systemRole: string): Promise<string> {
   const startTime = Date.now();
   try {
     return await retryWithBackoff(
@@ -168,7 +177,7 @@ async function analyzeWithPerplexity(prompt: string): Promise<string> {
             messages: [
               {
                 role: 'system',
-                content: 'You are a research analyst with access to real-time information. Provide context from recent news, funding, market position, and credibility signals.'
+                content: systemRole
               },
               {
                 role: 'user',
@@ -261,23 +270,19 @@ function calculateModelAgreement(analyses: { claude: string; gemini: string; gro
  * Generate consensus and dissent summary using Claude with weighted voting
  */
 async function generateConsensusSummary(analyses: { claude: string; gemini: string; grok: string; perplexity: string }): Promise<{ consensus: string; dissent: string; recommendation: string; confidenceScore: number; modelAgreement: number }> {
-  const prompt = `Analyze these four AI model perspectives on a business opportunity and provide:
+  const systemPrompt = `You are an expert synthesist. Your task is to analyze four AI model perspectives and identify the consensus, dissent, and final recommendation.`;
 
+  const userPrompt = `Analyze these four AI model perspectives on a business opportunity:
+
+${wrapInTags('claude_analysis', analyses.claude)}
+${wrapInTags('gemini_analysis', analyses.gemini)}
+${wrapInTags('grok_analysis', analyses.grok)}
+${wrapInTags('perplexity_analysis', analyses.perplexity)}
+
+Provide:
 1. CONSENSUS: What do all models agree on? (2-3 sentences)
 2. DISSENT: What are the key disagreements or contrarian views? (2-3 sentences)
 3. RECOMMENDATION: Final actionable recommendation based on the analysis (2-3 sentences)
-
-CLAUDE ANALYSIS:
-${analyses.claude}
-
-GEMINI ANALYSIS:
-${analyses.gemini}
-
-GROK ANALYSIS:
-${analyses.grok}
-
-PERPLEXITY ANALYSIS:
-${analyses.perplexity}
 
 Provide your response in this exact format:
 CONSENSUS: [your consensus summary]
@@ -286,7 +291,10 @@ RECOMMENDATION: [your recommendation]`;
 
   try {
     const response = await invokeLLM({
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
     });
 
     const messageContent = response.choices[0]?.message?.content;
@@ -330,31 +338,35 @@ export async function analyzeOpportunity(
   topic: string,
   context: string
 ): Promise<OpportunityAnalysis> {
-  const analysisPrompt = `Analyze this business development opportunity and provide a strategic recommendation:
+  const systemPrompt = `You are a strategic business development advisor. Analyze the provided context within the <context> tags.
+Your goal is to provide a strategic recommendation on whether to prioritize this opportunity.
 
-TOPIC: ${topic}
-
-CONTEXT:
-${context}
-
-YOUR TASK:
-Provide a strategic recommendation on whether to prioritize this opportunity. Consider:
+Consider:
 1. Strategic fit and value
 2. Relationship signals and engagement
 3. Risks or concerns
-4. Recommended next steps
+4. Recommended next steps`;
+
+  const analysisPrompt = `Topic: ${topic}
+
+${wrapInTags('context', context)}
 
 Be direct, actionable, and highlight what matters most. Keep your response to 3-4 sentences.`;
 
   logger.debug('Starting multi-model analysis', { topic });
 
+  const claudeSystem = 'You are a strategic business development advisor. Provide concise, actionable analysis focused on relationship signals, strategic fit, and risks. Be direct and highlight what matters most.';
+  const geminiSystem = 'You are a data-driven business analyst.';
+  const grokSystem = 'You are a contrarian analyst. Provide devil\'s advocate perspective, highlighting risks, edge cases, and potential downsides. Be skeptical but constructive.';
+  const perplexitySystem = 'You are a research analyst with access to real-time information. Provide context from recent news, funding, market position, and credibility signals.';
+
   // Run all analyses in parallel
   const analysisStartTime = Date.now();
   const [claude, gemini, grok, perplexity] = await Promise.all([
-    analyzeWithClaude(analysisPrompt),
-    analyzeWithGemini(analysisPrompt),
-    analyzeWithGrok(analysisPrompt),
-    analyzeWithPerplexity(analysisPrompt),
+    analyzeWithClaude(analysisPrompt, claudeSystem),
+    analyzeWithGemini(analysisPrompt, geminiSystem),
+    analyzeWithGrok(analysisPrompt, grokSystem),
+    analyzeWithPerplexity(analysisPrompt, perplexitySystem),
   ]);
 
   logger.debug('All model analyses complete, generating consensus', {

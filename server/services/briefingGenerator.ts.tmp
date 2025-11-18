@@ -1,3 +1,0 @@
-  console.log('[Briefing DEBUG] Gmail messages count:', gmailMessages.length);
-  console.log('[Briefing DEBUG] Calendar events count:', calendarEvents.length);
-  console.log('[Briefing DEBUG] Limitless recordings count:', limitlessRecordings.length);

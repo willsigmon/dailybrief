@@ -3,7 +3,11 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import * as db from "./db";
+import { briefingRepository } from "./repositories/briefing.repo";
+import { alertRepository } from "./repositories/alert.repo";
+import { relationshipRepository } from "./repositories/relationship.repo";
+import { calendarRepository } from "./repositories/calendar.repo";
+import { llmAnalysisRepository } from "./repositories/llm.repo";
 import { generateDailyBriefing } from "./services/briefingGenerator";
 import { briefingGenerationRateLimiter, getClientId } from "./_core/rateLimiter";
 import { logger, logError } from "./_core/logger";
@@ -24,13 +28,13 @@ export const appRouter = router({
   briefing: router({
     // Get the latest briefing with all related data
     getLatest: protectedProcedure.query(async () => {
-      const briefing = await db.getLatestBriefing();
+      const briefing = await briefingRepository.getLatest();
       if (!briefing) return null;
 
       const [alerts, calendarEvents, llmAnalyses] = await Promise.all([
-        db.getAlertsByBriefingId(briefing.id),
-        db.getCalendarEventsByBriefingId(briefing.id),
-        db.getLlmAnalysesByBriefingId(briefing.id),
+        alertRepository.getByBriefingId(briefing.id),
+        calendarRepository.getByBriefingId(briefing.id),
+        llmAnalysisRepository.getByBriefingId(briefing.id),
       ]);
 
       return {
@@ -45,13 +49,13 @@ export const appRouter = router({
     getById: protectedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
-        const briefing = await db.getBriefingById(input.id);
+        const briefing = await briefingRepository.getById(input.id);
         if (!briefing) return null;
 
         const [alerts, calendarEvents, llmAnalyses] = await Promise.all([
-          db.getAlertsByBriefingId(briefing.id),
-          db.getCalendarEventsByBriefingId(briefing.id),
-          db.getLlmAnalysesByBriefingId(briefing.id),
+          alertRepository.getByBriefingId(briefing.id),
+          calendarRepository.getByBriefingId(briefing.id),
+          llmAnalysisRepository.getByBriefingId(briefing.id),
         ]);
 
         return {
@@ -69,7 +73,7 @@ export const appRouter = router({
         completed: z.boolean(),
       }))
       .mutation(async ({ input }) => {
-        await db.updateAlertCompletion(input.id, input.completed);
+        await alertRepository.updateCompletion(input.id, input.completed);
         return { success: true };
       }),
   }),
@@ -77,7 +81,7 @@ export const appRouter = router({
   relationships: router({
     // Get all relationships
     getAll: protectedProcedure.query(async () => {
-      return await db.getAllRelationships();
+      return await relationshipRepository.getAll();
     }),
   }),
 
